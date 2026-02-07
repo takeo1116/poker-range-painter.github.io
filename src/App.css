@@ -77,9 +77,7 @@ body {
 }
 
 .grid-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  text-align: center;
   margin-bottom: 10px;
 }
 
@@ -87,6 +85,21 @@ body {
   font-size: 1.5rem;
   margin: 0;
   color: #4CAF50;
+}
+
+.grid-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.grid-footer-left {
+  justify-self: start;
+}
+
+.grid-footer-right {
+  justify-self: end;
 }
 
 .copy-button {
@@ -101,8 +114,32 @@ body {
   white-space: nowrap;
 }
 
-.copy-button:hover {
+.copy-button:hover:not(:disabled) {
   background-color: #4CAF50;
+  color: white;
+}
+
+.copy-button:disabled {
+  border-color: #2a2a2a;
+  background-color: #1a1a1a;
+  color: #333;
+  cursor: not-allowed;
+}
+
+.range-clear-button {
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  border: 2px solid #f44336;
+  background-color: #2a2a2a;
+  color: #f44336;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.range-clear-button:hover {
+  background-color: #f44336;
   color: white;
 }
 
@@ -150,7 +187,7 @@ body {
 }
 
 .override-only {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.85);
   color: #000;
 }
 
@@ -303,6 +340,201 @@ body {
   border-color: #FF9800;
   color: white;
   font-weight: bold;
+}
+
+/* ボード入力 */
+.board-input {
+  margin-bottom: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board-header {
+  margin-bottom: 10px;
+}
+
+.board-label {
+  font-size: 1.1rem;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.board-slots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.board-slot {
+  position: relative;
+  width: 60px;
+  height: 80px;
+  border: 3px solid #555;
+  border-radius: 8px;
+  background-color: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.board-slot.wide-gap {
+  margin-left: 5px;
+}
+
+.board-slot:not(.disabled):hover {
+  border-color: #4CAF50;
+  transform: translateY(-2px);
+}
+
+.board-slot.filled {
+  border-color: #4CAF50;
+}
+
+.board-slot.selected {
+  border-color: #FF9800;
+  box-shadow: 0 0 10px #FF9800;
+}
+
+.board-slot.disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  border-color: #333;
+}
+
+.board-slot-empty {
+  color: #666;
+  font-size: 1.5rem;
+}
+
+.board-slot-disabled {
+  color: #444;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.board-card-display {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.board-buttons {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  width: 340px;
+  gap: 10px;
+  min-height: 38px;
+}
+
+.board-buttons > .board-action-button:only-child {
+  grid-column: 2;
+}
+
+.board-action-button {
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  border: 2px solid #4CAF50;
+  background-color: #2a2a2a;
+  color: #4CAF50;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.board-action-button:hover:not(:disabled) {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.board-action-button:disabled {
+  border-color: #2a2a2a;
+  background-color: #1a1a1a;
+  color: #333;
+  cursor: not-allowed;
+}
+
+.board-clear-button {
+  border-color: #f44336;
+  color: #f44336;
+}
+
+.board-clear-button:hover:not(:disabled) {
+  background-color: #f44336;
+  color: white;
+}
+
+.board-clear-button:disabled {
+  border-color: #2a2a2a;
+  background-color: #1a1a1a;
+  color: #333;
+}
+
+.card-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.card-selector {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #2a2a2a;
+  padding: 20px;
+  border-radius: 10px;
+  border: 3px solid #4CAF50;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.card-selector-row {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.card-selector-row:last-child {
+  margin-bottom: 0;
+}
+
+.card-selector-button {
+  width: 40px;
+  height: 50px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.card-selector-button:hover:not(.disabled) {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.card-selector-button.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* レスポンシブ */

@@ -73,6 +73,7 @@ export default defineConfig({
 - **コードが正**ではなく、**SPEC.mdが正**
 - 実装とドキュメントが矛盾したら、まずSPEC.mdを見直す
 - 不明点はSPEC.mdのTODOセクションに記載
+- SPEC.mdには変更履歴を記載しない
 
 ### 技術的制約
 - 外部APIを使用しない

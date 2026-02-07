@@ -59,3 +59,9 @@ export type Stats = {
   bluffToValueRatio: string; // "3.5" or "∞" or "N/A"
   bluffPercent: string; // "75.0%" or "N/A"
 };
+
+// カード（例: "As", "Kh"）
+export type CardId = string;
+
+// ボード状態（ストリートごとのカード配列）
+export type BoardState = Record<Street, CardId[]>;

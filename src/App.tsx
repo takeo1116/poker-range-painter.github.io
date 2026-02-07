@@ -7,6 +7,8 @@ import {
   PaintMode,
   FlagMode,
   HistoryEntry,
+  BoardState,
+  CardId,
 } from "./types";
 import { generateCellKeys } from "./utils/rangeMatrix";
 import { calculateStats } from "./utils/calculations";
@@ -14,6 +16,7 @@ import { StreetTabs } from "./components/StreetTabs";
 import { RangeGrid } from "./components/RangeGrid";
 import { ControlPanel } from "./components/ControlPanel";
 import { StatsPanel } from "./components/StatsPanel";
+import { BoardInput } from "./components/BoardInput";
 import "./App.css";
 
 // 初期状態生成
@@ -40,6 +43,14 @@ function App() {
   const [paintMode, setPaintMode] = useState<PaintMode>("value");
   const [flagMode, setFlagMode] = useState<FlagMode>("off");
   const [selectedFlagId, setSelectedFlagId] = useState<string | null>(null);
+
+  // ボード状態（常に5枠）
+  const [boardState, setBoardState] = useState<BoardState>({
+    pre: ["", "", "", "", ""],
+    flop: ["", "", "", "", ""],
+    turn: ["", "", "", "", ""],
+    river: ["", "", "", "", ""],
+  });
 
   // Undo/Redo
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -230,6 +241,72 @@ function App() {
     setHistoryIndex(newHistory.length - 1);
   };
 
+  // レンジをクリア
+  const handleRangeClear = (player: Player) => {
+    const cellKeys = generateCellKeys();
+    const patches: {
+      cellKey: string;
+      before: CellState;
+      after: CellState;
+    }[] = [];
+
+    const currentCells = rangeState[currentStreet][player];
+    const newCells: Record<string, CellState> = {};
+
+    for (const cellKey of cellKeys) {
+      const before = currentCells[cellKey];
+      const after: CellState = { baseState: "excluded", override: null };
+      patches.push({ cellKey, before, after });
+      newCells[cellKey] = after;
+    }
+
+    // 状態更新
+    setRangeState((prev) => ({
+      ...prev,
+      [currentStreet]: {
+        ...prev[currentStreet],
+        [player]: newCells,
+      },
+    }));
+
+    // 履歴追加
+    const newEntry: HistoryEntry = {
+      street: currentStreet,
+      player: player,
+      patches,
+    };
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newEntry);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  // ボード変更
+  const handleBoardChange = (newBoard: CardId[]) => {
+    setBoardState((prev) => ({
+      ...prev,
+      [currentStreet]: newBoard,
+    }));
+  };
+
+  // ボードを前ストリートからコピー
+  const handleBoardCopyFromPrevious = () => {
+    const streetOrder: Street[] = ["pre", "flop", "turn", "river"];
+    const currentIndex = streetOrder.indexOf(currentStreet);
+    if (currentIndex <= 0) return;
+
+    const previousStreet = streetOrder[currentIndex - 1];
+    const previousBoard = boardState[previousStreet];
+
+    // 前ストリートのカードを5枠分コピー
+    const newBoard = [...previousBoard];
+
+    setBoardState((prev) => ({
+      ...prev,
+      [currentStreet]: newBoard,
+    }));
+  };
+
   // キーボードショートカット
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -252,8 +329,9 @@ function App() {
   // 集計計算
   const heroCells = rangeState[currentStreet].hero;
   const villainCells = rangeState[currentStreet].villain;
-  const heroStats = calculateStats(heroCells);
-  const villainStats = calculateStats(villainCells);
+  const currentBoard = boardState[currentStreet].filter((c) => c !== "");
+  const heroStats = calculateStats(heroCells, currentBoard);
+  const villainStats = calculateStats(villainCells, currentBoard);
 
   return (
     <div className="app">
@@ -263,6 +341,13 @@ function App() {
 
       <StreetTabs currentStreet={currentStreet} onStreetChange={setCurrentStreet} />
 
+      <BoardInput
+        street={currentStreet}
+        board={boardState[currentStreet]}
+        onBoardChange={handleBoardChange}
+        onCopyFromPrevious={handleBoardCopyFromPrevious}
+      />
+
       <div className="main-content">
         <div className="grids-container">
           <RangeGrid
@@ -271,6 +356,7 @@ function App() {
             cells={heroCells}
             onDragPaint={(cellKeys) => handleDragPaint("hero", cellKeys)}
             onCopyFromPrevious={() => handleCopyFromPrevious("hero")}
+            onClear={() => handleRangeClear("hero")}
           />
           <RangeGrid
             player="villain"
@@ -278,6 +364,7 @@ function App() {
             cells={villainCells}
             onDragPaint={(cellKeys) => handleDragPaint("villain", cellKeys)}
             onCopyFromPrevious={() => handleCopyFromPrevious("villain")}
+            onClear={() => handleRangeClear("villain")}
           />
         </div>
 

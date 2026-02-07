@@ -16,8 +16,8 @@ export function generateCellKeys(): string[] {
         // 対角線上：suited
         keys.push(`${rank1}${rank2}s`);
       } else {
-        // 対角線下：offsuit
-        keys.push(`${rank1}${rank2}o`);
+        // 対角線下：offsuit（大きい方が先）
+        keys.push(`${rank2}${rank1}o`);
       }
     }
   }
@@ -56,6 +56,6 @@ export function getCellKeyAt(row: number, col: number): string {
   } else if (row < col) {
     return `${rank1}${rank2}s`;
   } else {
-    return `${rank1}${rank2}o`;
+    return `${rank2}${rank1}o`;
   }
 }

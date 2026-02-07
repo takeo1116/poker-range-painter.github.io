@@ -9,6 +9,7 @@ type Props = {
   cells: Record<string, CellState>;
   onDragPaint: (cellKeys: string[]) => void;
   onCopyFromPrevious: () => void;
+  onClear: () => void;
 };
 
 export function RangeGrid({
@@ -17,6 +18,7 @@ export function RangeGrid({
   cells,
   onDragPaint,
   onCopyFromPrevious,
+  onClear,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [draggedCells, setDraggedCells] = useState<Set<string>>(new Set());
@@ -46,17 +48,7 @@ export function RangeGrid({
   return (
     <div className="range-grid-container" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
       <div className="grid-header">
-        {player === "hero" && canCopy && (
-          <button className="copy-button" onClick={onCopyFromPrevious}>
-            前ストリートをコピー
-          </button>
-        )}
         <h3 className="player-title">{player === "hero" ? "Hero" : "Villain"}</h3>
-        {player === "villain" && canCopy && (
-          <button className="copy-button" onClick={onCopyFromPrevious}>
-            前ストリートをコピー
-          </button>
-        )}
       </div>
       <div className="range-grid">
         {Array.from({ length: 13 }).map((_, row) =>
@@ -74,6 +66,30 @@ export function RangeGrid({
             );
           })
         )}
+      </div>
+      <div className="grid-footer">
+        <div className="grid-footer-left">
+          {player === "hero" ? (
+            <button className="copy-button" onClick={onCopyFromPrevious} disabled={!canCopy}>
+              前ストリートをコピー
+            </button>
+          ) : (
+            <button className="range-clear-button" onClick={onClear}>
+              クリア
+            </button>
+          )}
+        </div>
+        <div className="grid-footer-right">
+          {player === "villain" ? (
+            <button className="copy-button" onClick={onCopyFromPrevious} disabled={!canCopy}>
+              前ストリートをコピー
+            </button>
+          ) : (
+            <button className="range-clear-button" onClick={onClear}>
+              クリア
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

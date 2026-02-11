@@ -5,11 +5,12 @@ import { colorizeFlag } from "../utils/suitColors";
 type Props = {
   cellKey: string;
   cellState: CellState;
+  isHighlighted: boolean;
   onMouseDown: () => void;
   onMouseEnter: () => void;
 };
 
-export function Cell({ cellKey, cellState, onMouseDown, onMouseEnter }: Props) {
+export function Cell({ cellKey, cellState, isHighlighted, onMouseDown, onMouseEnter }: Props) {
   const { baseState, override } = cellState;
 
   // ベース背景色
@@ -31,7 +32,7 @@ export function Cell({ cellKey, cellState, onMouseDown, onMouseEnter }: Props) {
 
   return (
     <div
-      className={`cell ${bgClass}`}
+      className={`cell ${bgClass} ${isHighlighted ? "cell-highlighted" : ""}`}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
     >

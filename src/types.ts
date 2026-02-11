@@ -65,3 +65,6 @@ export type CardId = string;
 
 // ボード状態（ストリートごとのカード配列）
 export type BoardState = Record<Street, CardId[]>;
+
+// 参照レンジ選択状態（プレイヤーごとに1つ選択可能）
+export type ReferenceRangeSelection = Record<Player, string | null>;

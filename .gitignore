@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 
 # Work files
-instruction.md
-~./
+CLAUDE.md
+AGENTS.md
+CHANGE_QUEUE.md

@@ -9,9 +9,11 @@ import {
   HistoryEntry,
   BoardState,
   CardId,
+  ReferenceRangeSelection,
 } from "./types";
 import { generateCellKeys } from "./utils/rangeMatrix";
 import { calculateStats } from "./utils/calculations";
+import { referenceRanges } from "./data/referenceRanges";
 import { StreetTabs } from "./components/StreetTabs";
 import { RangeGrid } from "./components/RangeGrid";
 import { ControlPanel } from "./components/ControlPanel";
@@ -51,6 +53,13 @@ function App() {
     turn: ["", "", "", "", ""],
     river: ["", "", "", "", ""],
   });
+
+  // 参照レンジ選択状態
+  const [referenceRangeSelection, setReferenceRangeSelection] =
+    useState<ReferenceRangeSelection>({
+      hero: null,
+      villain: null,
+    });
 
   // Undo/Redo
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -307,6 +316,14 @@ function App() {
     }));
   };
 
+  // 参照レンジ選択変更
+  const handleReferenceRangeChange = (player: Player, rangeId: string | null) => {
+    setReferenceRangeSelection((prev) => ({
+      ...prev,
+      [player]: rangeId,
+    }));
+  };
+
   // キーボードショートカット
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -357,6 +374,11 @@ function App() {
             onDragPaint={(cellKeys) => handleDragPaint("hero", cellKeys)}
             onCopyFromPrevious={() => handleCopyFromPrevious("hero")}
             onClear={() => handleRangeClear("hero")}
+            referenceRanges={referenceRanges}
+            selectedReferenceRangeId={referenceRangeSelection.hero}
+            onReferenceRangeChange={(rangeId) =>
+              handleReferenceRangeChange("hero", rangeId)
+            }
           />
           <RangeGrid
             player="villain"
@@ -365,6 +387,11 @@ function App() {
             onDragPaint={(cellKeys) => handleDragPaint("villain", cellKeys)}
             onCopyFromPrevious={() => handleCopyFromPrevious("villain")}
             onClear={() => handleRangeClear("villain")}
+            referenceRanges={referenceRanges}
+            selectedReferenceRangeId={referenceRangeSelection.villain}
+            onReferenceRangeChange={(rangeId) =>
+              handleReferenceRangeChange("villain", rangeId)
+            }
           />
         </div>
 

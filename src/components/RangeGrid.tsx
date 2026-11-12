@@ -28,6 +28,7 @@ export function RangeGrid({
   onReferenceRangeChange,
 }: Props) {
   const [isDragging, setIsDragging] = useState(false);
+  // 同じセルへの再進入でトグルを繰り返さず、ドラッグ全体を1手でUndoできるよう終了時にまとめて適用する。
   const [draggedCells, setDraggedCells] = useState<Set<string>>(new Set());
 
   const handleMouseDown = (cellKey: string) => {

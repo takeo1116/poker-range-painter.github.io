@@ -7,7 +7,8 @@ export type Override =
   | { flagId: string; mode: "only"; state: "value" | "bluff" }
   | { flagId: string; mode: "except" };
 
-// セル状態
+// セル状態：overrideがある場合、baseStateは必ずvalue/bluffにする。
+// ONLYではoverride.stateもbaseStateと一致させ、表示色と集計上の分類を揃える。
 export type CellState = {
   baseState: BaseState;
   override: Override;
@@ -45,6 +46,7 @@ export type CellPatch = {
   after: CellState;
 };
 
+// ドラッグ・レンジのコピー・クリアをそれぞれ1手とし、対象ストリートとプレイヤーを記録する。
 export type HistoryEntry = {
   street: Street;
   player: Player;

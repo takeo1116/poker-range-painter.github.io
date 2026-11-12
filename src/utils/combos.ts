@@ -9,7 +9,7 @@ export const SUIT_SYMBOLS: Record<string, string> = {
   c: "♣",
 };
 
-// フラグ定義（CLAUDE.mdの順番通り）
+// フラグ定義（パレット表示順：suited → 高ランク側 → 低ランク側 → 2スート組）
 export const FLAG_DEFINITIONS = [
   // 1. suited 4種
   { id: "ss", label: "♠♠", category: "suited" as const },
@@ -107,7 +107,8 @@ export function comboMatchesFlag(comboId: ComboId, flagId: string): boolean {
     upperSuit = suit2;
     lowerSuit = suit1;
   } else {
-    // ペア（同ランク）
+    // ペアはコンボIDの先頭を高ランク側として扱う。
+    // カード順（生成時はSUITS順）を変えるとupper/lowerフラグの判定も変わる点に注意。
     upperSuit = suit1;
     lowerSuit = suit2;
   }

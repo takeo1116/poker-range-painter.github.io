@@ -54,7 +54,8 @@ function App() {
     river: ["", "", "", "", ""],
   });
 
-  // 参照レンジ選択状態
+  // 参照レンジは比較用の枠表示のみ。塗り状態・集計・Undo/Redoには影響させない。
+  // プレイヤーごとに選択を保持し、ストリートを切り替えても維持する。
   const [referenceRangeSelection, setReferenceRangeSelection] =
     useState<ReferenceRangeSelection>({
       hero: null,
@@ -90,7 +91,7 @@ function App() {
           after = { baseState: targetBase, override: null };
         }
       } else if (flagMode === "only") {
-        // ONLY：ExcludeモードでもValue/Bluffを選択可能
+        // ONLY/EXCEPTはValue/Bluffへの条件指定なので、Exclude塗りでは何もしない。
         if (!selectedFlagId || paintMode === "exclude") continue;
 
         const existingOverride = before.override;
@@ -112,7 +113,7 @@ function App() {
           };
         }
       } else {
-        // EXCEPT
+        // EXCEPTの再適用はPaint色に関係なく同じflagIdならExcludeに戻す（ONLYは色も比較する）。
         if (!selectedFlagId || paintMode === "exclude") continue;
 
         const existingOverride = before.override;

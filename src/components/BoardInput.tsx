@@ -22,7 +22,7 @@ export function BoardInput({ street, board, onBoardChange, onCopyFromPrevious }:
   // ストリートごとの有効スロット数
   const activeSlotCount = street === "flop" ? 3 : street === "turn" ? 4 : street === "river" ? 5 : 0;
 
-  // 常に5枠表示
+  // ストリート切替でレイアウトが動かないよう、5枠と操作ボタンは非表示にせず無効化する。
   const totalSlots = 5;
 
   // スロットクリック

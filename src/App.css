@@ -205,7 +205,7 @@ body {
 }
 
 .cell:hover {
-  transform: scale(1.1);
+  filter: brightness(1.15);
 }
 
 .cell-label {
@@ -598,3 +598,12 @@ body {
     font-size: 0.65rem;
   }
 }
+
+.range-grid { touch-action: none; user-select: none; }
+.cell { cursor: crosshair; }
+.cell-preview { outline: 2px solid #fff; outline-offset: -3px; }
+.selection-status { min-height: 28px; padding-top: 8px; color: #bbb; font-size: 0.8rem; }
+.control-panel { margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 16px 24px; }
+.control-section { margin-bottom: 0; }
+.paint-help { flex-basis: 100%; order: 10; color: #bbb; font-size: 0.85rem; }
+.paint-warning { flex-basis: 100%; order: 11; color: #ffcc80; }

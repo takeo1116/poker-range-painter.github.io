@@ -5,6 +5,7 @@ import {
   RangeState,
   CellState,
   PaintMode,
+  SelectionMode,
   FlagMode,
   HistoryEntry,
   BoardState,
@@ -19,6 +20,7 @@ import { RangeGrid } from "./components/RangeGrid";
 import { ControlPanel } from "./components/ControlPanel";
 import { StatsPanel } from "./components/StatsPanel";
 import { BoardInput } from "./components/BoardInput";
+import { getPaintState } from "./utils/painting";
 import "./App.css";
 
 // 初期状態生成
@@ -43,6 +45,7 @@ function App() {
   const [rangeState, setRangeState] = useState<RangeState>(createInitialRangeState);
   const [currentStreet, setCurrentStreet] = useState<Street>("pre");
   const [paintMode, setPaintMode] = useState<PaintMode>("value");
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>("brush");
   const [flagMode, setFlagMode] = useState<FlagMode>("off");
   const [selectedFlagId, setSelectedFlagId] = useState<string | null>(null);
 
@@ -67,7 +70,7 @@ function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
 
   // ドラッグ塗り処理（プレイヤー指定版）
-  const handleDragPaint = (player: Player, cellKeys: string[]) => {
+  const handleDragPaint = (player: Player, cellKeys: string[], after: CellState) => {
     const patches: {
       cellKey: string;
       before: CellState;
@@ -78,61 +81,7 @@ function App() {
 
     for (const cellKey of cellKeys) {
       const before = newCells[cellKey];
-      let after: CellState;
-
-      if (flagMode === "off") {
-        // Flagモード OFF：同じbaseStateを上書き→Exclude、異なる→変更
-        const targetBase = paintMode === "exclude" ? "excluded" : paintMode;
-        if (before.baseState === targetBase && !before.override) {
-          // 同じ状態を上書き→Excludeに変更
-          after = { baseState: "excluded", override: null };
-        } else {
-          // 異なる状態→変更、overrideは解除
-          after = { baseState: targetBase, override: null };
-        }
-      } else if (flagMode === "only") {
-        // ONLY/EXCEPTはValue/Bluffへの条件指定なので、Exclude塗りでは何もしない。
-        if (!selectedFlagId || paintMode === "exclude") continue;
-
-        const existingOverride = before.override;
-        const isSame =
-          existingOverride &&
-          existingOverride.mode === "only" &&
-          existingOverride.flagId === selectedFlagId &&
-          "state" in existingOverride &&
-          existingOverride.state === paintMode;
-
-        if (isSame) {
-          // トグル：override解除、baseStateはExcludeに
-          after = { baseState: "excluded", override: null };
-        } else {
-          // 適用：baseStateもpaintModeに変更
-          after = {
-            baseState: paintMode,
-            override: { flagId: selectedFlagId, mode: "only", state: paintMode },
-          };
-        }
-      } else {
-        // EXCEPTの再適用はPaint色に関係なく同じflagIdならExcludeに戻す（ONLYは色も比較する）。
-        if (!selectedFlagId || paintMode === "exclude") continue;
-
-        const existingOverride = before.override;
-        const isSame =
-          existingOverride &&
-          existingOverride.mode === "except" &&
-          existingOverride.flagId === selectedFlagId;
-
-        if (isSame) {
-          // トグル：override解除、baseStateはExcludeに
-          after = { baseState: "excluded", override: null };
-        } else {
-          // 適用：baseStateもpaintModeに変更
-          after = {
-            baseState: paintMode,
-            override: { flagId: selectedFlagId, mode: "except" },
-          };
-        }
-      }
+      if (JSON.stringify(before) === JSON.stringify(after)) continue;
 
       patches.push({ cellKey, before, after });
       newCells[cellKey] = after;
@@ -366,13 +315,31 @@ function App() {
         onCopyFromPrevious={handleBoardCopyFromPrevious}
       />
 
+      <ControlPanel
+        selectionMode={selectionMode}
+        onSelectionModeChange={setSelectionMode}
+        paintMode={paintMode}
+        onPaintModeChange={setPaintMode}
+        flagMode={flagMode}
+        onFlagModeChange={setFlagMode}
+        selectedFlagId={selectedFlagId}
+        onSelectFlag={setSelectedFlagId}
+        canUndo={historyIndex >= 0}
+        canRedo={historyIndex < history.length - 1}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+      />
+
       <div className="main-content">
         <div className="grids-container">
           <RangeGrid
+            key={`hero-${currentStreet}`}
             player="hero"
+            selectionMode={selectionMode}
+            paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
             currentStreet={currentStreet}
             cells={heroCells}
-            onDragPaint={(cellKeys) => handleDragPaint("hero", cellKeys)}
+            onDragPaint={(cellKeys, paint) => handleDragPaint("hero", cellKeys, paint)}
             onCopyFromPrevious={() => handleCopyFromPrevious("hero")}
             onClear={() => handleRangeClear("hero")}
             referenceRanges={referenceRanges}
@@ -382,10 +349,13 @@ function App() {
             }
           />
           <RangeGrid
+            key={`villain-${currentStreet}`}
             player="villain"
+            selectionMode={selectionMode}
+            paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
             currentStreet={currentStreet}
             cells={villainCells}
-            onDragPaint={(cellKeys) => handleDragPaint("villain", cellKeys)}
+            onDragPaint={(cellKeys, paint) => handleDragPaint("villain", cellKeys, paint)}
             onCopyFromPrevious={() => handleCopyFromPrevious("villain")}
             onClear={() => handleRangeClear("villain")}
             referenceRanges={referenceRanges}
@@ -402,18 +372,7 @@ function App() {
         </div>
       </div>
 
-      <ControlPanel
-        paintMode={paintMode}
-        onPaintModeChange={setPaintMode}
-        flagMode={flagMode}
-        onFlagModeChange={setFlagMode}
-        selectedFlagId={selectedFlagId}
-        onSelectFlag={setSelectedFlagId}
-        canUndo={historyIndex >= 0}
-        canRedo={historyIndex < history.length - 1}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-      />
+
     </div>
   );
 }

@@ -6,11 +6,10 @@ type Props = {
   cellKey: string;
   cellState: CellState;
   isHighlighted: boolean;
-  onMouseDown: () => void;
-  onMouseEnter: () => void;
+  isPreview: boolean;
 };
 
-export function Cell({ cellKey, cellState, isHighlighted, onMouseDown, onMouseEnter }: Props) {
+export function Cell({ cellKey, cellState, isHighlighted, isPreview }: Props) {
   const { baseState, override } = cellState;
 
   // ベース背景色
@@ -32,9 +31,8 @@ export function Cell({ cellKey, cellState, isHighlighted, onMouseDown, onMouseEn
 
   return (
     <div
-      className={`cell ${bgClass} ${isHighlighted ? "cell-highlighted" : ""}`}
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
+      className={`cell ${bgClass} ${isHighlighted ? "cell-highlighted" : ""} ${isPreview ? "cell-preview" : ""}`}
+      data-cell-key={cellKey}
     >
       <div className="cell-label">{cellKey}</div>
       {overrideHtml && (

@@ -1,7 +1,9 @@
-import { PaintMode, FlagMode } from "../types";
+import { PaintMode, FlagMode, SelectionMode } from "../types";
 import { FlagPalette } from "./FlagPalette";
 
 type Props = {
+  selectionMode: SelectionMode;
+  onSelectionModeChange: (mode: SelectionMode) => void;
   paintMode: PaintMode;
   onPaintModeChange: (mode: PaintMode) => void;
   flagMode: FlagMode;
@@ -15,6 +17,8 @@ type Props = {
 };
 
 export function ControlPanel({
+  selectionMode,
+  onSelectionModeChange,
   paintMode,
   onPaintModeChange,
   flagMode,
@@ -28,6 +32,17 @@ export function ControlPanel({
 }: Props) {
   return (
     <div className="control-panel">
+      <div className="control-section">
+        <h4>塗り方</h4>
+        <div className="button-group">
+          <button aria-pressed={selectionMode === "brush"} className={selectionMode === "brush" ? "active" : ""} onClick={() => onSelectionModeChange("brush")}>ドラッグ</button>
+          <button aria-pressed={selectionMode === "rectangle"} className={selectionMode === "rectangle" ? "active" : ""} onClick={() => onSelectionModeChange("rectangle")}>矩形</button>
+        </div>
+      </div>
+      <p className="paint-help">左ドラッグで上書き、右ドラッグで消去。Shift併用で矩形指定、Escでキャンセル。</p>
+      {flagMode !== "off" && paintMode !== "exclude" && !selectedFlagId && (
+        <p className="paint-warning" role="status">塗るスート条件を選んでください。</p>
+      )}
       <div className="control-section">
         <h4>Paint モード</h4>
         <div className="button-group">

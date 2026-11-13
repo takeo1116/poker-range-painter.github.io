@@ -90,7 +90,9 @@ export function BoardInput({ street, board, onBoardChange, onCopyFromPrevious }:
           const hasWideGap = index === 3 || index === 4;
 
           return (
-            <div
+            <button
+              type="button" disabled={!isActive}
+              aria-label={`ボード${index + 1}: ${cardId || "未選択"}`}
               key={index}
               className={`board-slot ${isActive ? "" : "disabled"} ${cardId ? "filled" : ""} ${
                 selectedSlot === index ? "selected" : ""
@@ -112,7 +114,7 @@ export function BoardInput({ street, board, onBoardChange, onCopyFromPrevious }:
               ) : (
                 <span className="board-slot-empty">?</span>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
@@ -122,7 +124,7 @@ export function BoardInput({ street, board, onBoardChange, onCopyFromPrevious }:
           onClick={onCopyFromPrevious}
           disabled={!canCopy}
         >
-          前ストリートをコピー
+          前からコピー
         </button>
         <button
           className="board-action-button board-clear-button"
@@ -136,7 +138,8 @@ export function BoardInput({ street, board, onBoardChange, onCopyFromPrevious }:
       {selectedSlot !== null && (
         <>
           <div className="card-selector-overlay" onClick={handleOverlayClick} />
-          <div className="card-selector">
+          <div className="card-selector" role="dialog" aria-label="ボードカードを選択">
+            <div className="card-selector-heading"><strong>カードを選択</strong><button onClick={handleOverlayClick} aria-label="閉じる">×</button></div>
             {SUITS.map((suit) => (
               <div key={suit.id} className="card-selector-row">
                 {RANKS.map((rank) => {
@@ -145,6 +148,7 @@ export function BoardInput({ street, board, onBoardChange, onCopyFromPrevious }:
                   return (
                     <button
                       key={cardId}
+                      aria-label={cardId}
                       className={`card-selector-button ${isUsed ? "disabled" : ""}`}
                       style={{
                         backgroundColor: suit.color,

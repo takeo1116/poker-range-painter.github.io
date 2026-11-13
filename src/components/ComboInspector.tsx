@@ -14,10 +14,10 @@ export function ComboInspector({ editing, cellKey, cellState, board, isPreview, 
         <strong>{cellKey} <small>{editing ? "を編集中（固定）" : isPreview ? "塗りのプレビュー" : "コンボの内訳"}</small></strong>
         <span>{count("value") + count("bluff")} / {combos.length} 採用</span>
       </div>
-      <p className="inspector-condition">{editing ? "各コンボをクリックして選択色で塗る・右クリックで消す（スート条件は無視）" : "個別に塗るには、操作を「コンボ編集」に切り替えてください。"}</p>
+      <p className="inspector-condition">{editing ? "クリックで塗る · 右クリックで消す（条件は無視）" : "個別に塗るときは「コンボ編集」へ。"}</p>
       <div className="combo-legend">
-        <span>青: Value {count("value")}</span><span>赤: Bluff {count("bluff")}</span>
-        <span>暗色: 除外 {count("excluded")}</span><span>斜線: 使用不可 {count("blocked")}</span>
+        <span>Value {count("value")}</span><span>Bluff {count("bluff")}</span>
+        <span>除外 {count("excluded")}</span><span>使用不可 {count("blocked")}</span>
       </div>
       <div className="combo-detail-grid">
         {combos.map((combo) => (

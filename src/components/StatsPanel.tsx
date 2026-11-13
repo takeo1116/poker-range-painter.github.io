@@ -1,34 +1,15 @@
 import { Stats } from "../types";
 
-type Props = {
-  player: "hero" | "villain";
-  stats: Stats;
-};
+type Props = { player: "hero" | "villain"; stats: Stats };
 
 export function StatsPanel({ player, stats }: Props) {
   return (
-    <div className="stats-panel">
-      <h4>{player === "hero" ? "Hero" : "Villain"} 集計</h4>
-      <div className="stats-row">
-        <span>Value:</span>
-        <span>{stats.valueCount}</span>
-      </div>
-      <div className="stats-row">
-        <span>Bluff:</span>
-        <span>{stats.bluffCount}</span>
-      </div>
-      <div className="stats-row">
-        <span>Total:</span>
-        <span>{stats.includedTotal}</span>
-      </div>
-      <div className="stats-row">
-        <span>Bluff:Value:</span>
-        <span>{stats.bluffToValueRatio}</span>
-      </div>
-      <div className="stats-row">
-        <span>Bluff%:</span>
-        <span>{stats.bluffPercent}</span>
-      </div>
-    </div>
+    <dl className="stats-panel" aria-label={player === "hero" ? "Hero 集計" : "Villain 集計"}>
+      <div className="stat-value"><dt>Value</dt><dd>{stats.valueCount}</dd></div>
+      <div className="stat-bluff"><dt>Bluff</dt><dd>{stats.bluffCount}</dd></div>
+      <div><dt>Total</dt><dd>{stats.includedTotal}</dd></div>
+      <div><dt>Bluff : Value</dt><dd>{stats.bluffToValueRatio}</dd></div>
+      <div><dt>Bluff %</dt><dd>{stats.bluffPercent}</dd></div>
+    </dl>
   );
 }

@@ -9,6 +9,7 @@ function setup(editing) {
   const slots = [];
   const calls = [];
   let cursor = 0;
+  let effects = [];
   const jsx = (type, props) => ({ type, props });
   const react = {
     useState(initial) {
@@ -21,7 +22,12 @@ function setup(editing) {
       if (!(index in slots)) slots[index] = { current: initial };
       return slots[index];
     },
-    useEffect() {},
+    useEffect(callback, deps) {
+      const index = cursor++;
+      const before = slots[index];
+      if (!before || deps.some((dep, i) => dep !== before[i])) effects.push(callback);
+      slots[index] = deps;
+    },
   };
   const cache = new Map();
   function load(file) {
@@ -31,7 +37,10 @@ function setup(editing) {
     const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
       compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
     }).outputText;
-    vm.runInNewContext(code, { exports, require(name) {
+    vm.runInNewContext(code, {
+      window: { addEventListener() {}, removeEventListener() {} },
+      getComputedStyle: () => ({ paddingLeft: "1", paddingTop: "1", borderLeftWidth: "0", borderTopWidth: "0", columnGap: "1", rowGap: "1" }),
+      exports, require(name) {
       if (name === "react") return react;
       if (name === "react/jsx-runtime") return { jsx, jsxs: jsx };
       const base = path.resolve(path.dirname(file), name);
@@ -56,6 +65,8 @@ function setup(editing) {
   const render = () => {
     cursor = 0;
     const nodes = flatten(RangeGrid(props));
+    effects.forEach(callback => callback());
+    effects = [];
     return {
       cell: key => nodes.find(node => node.type === Cell && node.props.cellKey === key),
       panel: nodes.find(node => node.type === ComboInspector),
@@ -114,4 +125,60 @@ test("Enterで対象を選択でき、編集モードではボード使用不可
   blocked.props.onClick();
   blocked.props.onContextMenu({ preventDefault() {} });
   assert.equal(h.calls.length, 0);
+});
+
+test("プレイヤー切替後も選択したセルを保持し、共通内訳の送信先を切り替える", () => {
+  const h = setup(true);
+  let activated = 0;
+  let panel;
+  h.props.active = false;
+  h.props.onActivate = () => { activated++; };
+  h.props.renderInspector = node => { panel = node; return null; };
+  let view = h.render();
+  assert.equal(view.panel, undefined);
+  view.cell("QQ").props.onSelect();
+  assert.equal(activated, 1);
+  h.props.active = true;
+  view = h.render();
+  assert.equal(panel.props.cellKey, "QQ");
+  assert.ok(view.cell("QQ").props.isInspected);
+  view.cell("AA").props.onInspect();
+  h.render();
+  assert.equal(panel.props.cellKey, "QQ");
+  h.props.active = false;
+  h.render();
+  h.props.active = true;
+  view = h.render();
+  assert.equal(panel.props.cellKey, "QQ");
+});
+
+test("端数幅のセルでも最終列まで塗れ、非アクティブ側からの塗り始めを取り消さない", () => {
+  const h = setup(false);
+  h.props.active = false;
+  h.props.paintState = { state: "value", mode: "off", flagId: null };
+  h.props.onActivate = () => { h.props.active = true; };
+  let view = h.render();
+  let captured = false;
+  const cellSize = 24.25;
+  const grid = {
+    getBoundingClientRect: () => ({ left: 100, top: 50 }),
+    firstElementChild: { getBoundingClientRect: () => ({ width: cellSize, height: cellSize }) },
+    setPointerCapture() { captured = true; },
+    hasPointerCapture() { return captured; },
+    releasePointerCapture() { captured = false; },
+  };
+  view.grid.props.ref.current = grid;
+  const event = col => ({
+    button: 0, isPrimary: true, pointerId: 1, shiftKey: false,
+    clientX: 101 + (cellSize + 1) * col + cellSize / 2,
+    clientY: 51 + cellSize / 2, currentTarget: grid, preventDefault() {},
+  });
+  view.grid.props.onPointerDown(event(0));
+  view = h.render();
+  assert.ok(captured);
+  view.grid.props.onPointerMove(event(12));
+  view.grid.props.onPointerUp(event(12));
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0][0].length, 13);
+  assert.equal(h.calls[0][0][12], "A2s");
 });

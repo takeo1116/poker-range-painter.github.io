@@ -18,6 +18,7 @@ export function StreetTabs({ currentStreet, onStreetChange }: Props) {
       {STREETS.map((street) => (
         <button
           key={street.value}
+          aria-pressed={currentStreet === street.value}
           className={`street-tab ${currentStreet === street.value ? "active" : ""}`}
           onClick={() => onStreetChange(street.value)}
         >

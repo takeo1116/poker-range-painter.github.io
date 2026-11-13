@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, PointerEvent as ReactPointerEvent } from "react";
+import { useState, useRef, useEffect, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { CellState, Player, Street, SelectionMode, CardId, PaintOperation, BaseState } from "../types";
 import { ReferenceRange } from "../data/referenceRanges";
 import { getCellKeyAt } from "../utils/rangeMatrix";
@@ -7,6 +7,9 @@ import { applyPaint } from "../utils/painting";
 import { ComboInspector } from "./ComboInspector";
 
 type Props = {
+  active?: boolean;
+  onActivate?: () => void;
+  renderInspector?: (panel: ReactNode) => ReactNode;
   comboEditing: boolean;
   player: Player;
   selectionMode: SelectionMode;
@@ -24,6 +27,9 @@ type Props = {
 };
 
 export function RangeGrid({
+  active = true,
+  onActivate = () => {},
+  renderInspector = (panel) => panel,
   comboEditing,
   player,
   selectionMode,
@@ -78,6 +84,8 @@ export function RangeGrid({
 
   // モード切替時に未確定の塗りを破棄し、編集モードへ持ち越さない。
   useEffect(() => { cancel(); }, [comboEditing]);
+  // 非アクティブ化時のみ中断する。塗り始めてアクティブになった側は継続する。
+  useEffect(() => { if (!active) cancel(); }, [active]);
 
   const position = (event: ReactPointerEvent<HTMLDivElement>): [number, number] | null => {
     const grid = gridRef.current;
@@ -87,8 +95,8 @@ export function RangeGrid({
     const x = event.clientX - rect.left - parseFloat(style.paddingLeft) - parseFloat(style.borderLeftWidth);
     const y = event.clientY - rect.top - parseFloat(style.paddingTop) - parseFloat(style.borderTopWidth);
     const cell = grid.firstElementChild as HTMLElement;
-    const stepX = cell.offsetWidth + parseFloat(style.columnGap || "0");
-    const stepY = cell.offsetHeight + parseFloat(style.rowGap || "0");
+    const stepX = cell.getBoundingClientRect().width + parseFloat(style.columnGap || "0");
+    const stepY = cell.getBoundingClientRect().height + parseFloat(style.rowGap || "0");
     const col = Math.floor(x / stepX);
     const row = Math.floor(y / stepY);
     if (x < 0 || y < 0 || x > 13 * stepX - parseFloat(style.columnGap || "0") ||
@@ -138,6 +146,7 @@ export function RangeGrid({
     const point = position(event);
     if (!point) return;
     event.preventDefault();
+    onActivate();
     event.currentTarget.setPointerCapture(event.pointerId);
     gesture.current = {
       pointerId: event.pointerId, start: point, last: point,
@@ -211,10 +220,10 @@ export function RangeGrid({
                 cellKey={cellKey}
                 cellState={cellState}
                 board={board}
-                isInspected={inspectedKey === cellKey}
-                onInspect={() => { if (!comboEditing) setInspectedKey(cellKey); }}
+                isInspected={active && inspectedKey === cellKey}
+                onInspect={() => { if (!comboEditing) { setInspectedKey(cellKey); onActivate(); } }}
                 editing={comboEditing}
-                onSelect={() => { if (comboEditing) setInspectedKey(cellKey); }}
+                onSelect={() => { if (comboEditing) { setInspectedKey(cellKey); onActivate(); } }}
                 isHighlighted={isHighlighted}
                 isPreview={preview?.keys.has(cellKey) ?? false}
               />
@@ -225,33 +234,17 @@ export function RangeGrid({
       <div className="selection-status" aria-live="polite">
         {comboEditing ? inspectedKey + "を編集中 · 別のセルをクリックして変更" : preview ? preview.keys.size + (preview.paint.state === "excluded" ? "セル消去中" : "セル選択中") + " · 離して確定 / Escでキャンセル" : "左で塗る · 右で消す · Shiftで矩形指定"}
       </div>
-      <ComboInspector editing={comboEditing} cellKey={inspectedKey}
+      {renderInspector(<ComboInspector editing={comboEditing} cellKey={inspectedKey}
         cellState={preview?.keys.has(inspectedKey) ? applyPaint(inspectedKey, cells[inspectedKey], preview.paint) : cells[inspectedKey]}
         onPaintCombo={(comboId, erase) => { if (comboEditing) onDragPaint([inspectedKey], { state: erase ? "excluded" : detailPaint, mode: "off", flagId: null, comboId }); }}
-        board={board} isPreview={preview?.keys.has(inspectedKey) ?? false} />
+        board={board} isPreview={preview?.keys.has(inspectedKey) ?? false} />)}
       <div className="grid-footer">
-        <div className="grid-footer-left">
-          {player === "hero" ? (
-            <button className="copy-button" onClick={onCopyFromPrevious} disabled={!canCopy}>
-              前ストリートをコピー
-            </button>
-          ) : (
-            <button className="range-clear-button" onClick={onClear}>
-              クリア
-            </button>
-          )}
-        </div>
-        <div className="grid-footer-right">
-          {player === "villain" ? (
-            <button className="copy-button" onClick={onCopyFromPrevious} disabled={!canCopy}>
-              前ストリートをコピー
-            </button>
-          ) : (
-            <button className="range-clear-button" onClick={onClear}>
-              クリア
-            </button>
-          )}
-        </div>
+        <button className="copy-button" onClick={onCopyFromPrevious} disabled={!canCopy}>
+          前ストリートをコピー
+        </button>
+        <button className="range-clear-button" onClick={onClear}>
+          クリア
+        </button>
       </div>
     </div>
   );

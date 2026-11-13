@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Street,
   Player,
@@ -43,6 +44,8 @@ function createInitialRangeState(): RangeState {
 }
 
 function App() {
+  const [activePlayer, setActivePlayer] = useState<Player>("hero");
+  const [inspectorHost, setInspectorHost] = useState<HTMLDivElement | null>(null);
   const [rangeState, setRangeState] = useState<RangeState>(createInitialRangeState);
   const [currentStreet, setCurrentStreet] = useState<Street>("pre");
   const [paintMode, setPaintMode] = useState<PaintMode>("value");
@@ -303,87 +306,86 @@ function App() {
   const heroStats = calculateStats(heroCells, currentBoard);
   const villainStats = calculateStats(villainCells, currentBoard);
 
+  const stats = { hero: heroStats, villain: villainStats };
+
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Range Painter</h1>
+        <div className="brand"><span className="brand-mark" aria-hidden="true">▦</span><h1>Range Painter</h1></div>
+        <StreetTabs currentStreet={currentStreet} onStreetChange={setCurrentStreet} />
       </header>
 
-      <StreetTabs currentStreet={currentStreet} onStreetChange={setCurrentStreet} />
-
-      <BoardInput
-        street={currentStreet}
-        board={boardState[currentStreet]}
-        onBoardChange={handleBoardChange}
-        onCopyFromPrevious={handleBoardCopyFromPrevious}
-      />
-
-      <ControlPanel
-        comboEditing={comboEditing}
-        onComboEditingChange={setComboEditing}
-        selectionMode={selectionMode}
-        onSelectionModeChange={setSelectionMode}
-        paintMode={paintMode}
-        onPaintModeChange={setPaintMode}
-        flagMode={flagMode}
-        onFlagModeChange={setFlagMode}
-        selectedFlagId={selectedFlagId}
-        onSelectFlag={setSelectedFlagId}
-        canUndo={historyIndex >= 0}
-        canRedo={historyIndex < history.length - 1}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-      />
-
-      <div className="main-content">
-        <div className="grids-container">
-          <RangeGrid
-            key={`hero-${currentStreet}`}
-            player="hero"
-            comboEditing={comboEditing}
-            selectionMode={selectionMode}
-            detailPaint={paintMode === "exclude" ? "excluded" : paintMode}
-            paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
-            currentStreet={currentStreet}
-            cells={heroCells}
-            board={currentBoard}
-            onDragPaint={(cellKeys, paint) => handleDragPaint("hero", cellKeys, paint)}
-            onCopyFromPrevious={() => handleCopyFromPrevious("hero")}
-            onClear={() => handleRangeClear("hero")}
-            referenceRanges={referenceRanges}
-            selectedReferenceRangeId={referenceRangeSelection.hero}
-            onReferenceRangeChange={(rangeId) =>
-              handleReferenceRangeChange("hero", rangeId)
-            }
+      <main className="workspace">
+        <section className="range-stage" aria-label="レンジの比較と編集">
+          <BoardInput
+            key={currentStreet}
+            street={currentStreet}
+            board={boardState[currentStreet]}
+            onBoardChange={handleBoardChange}
+            onCopyFromPrevious={handleBoardCopyFromPrevious}
           />
-          <RangeGrid
-            key={`villain-${currentStreet}`}
-            player="villain"
-            comboEditing={comboEditing}
-            selectionMode={selectionMode}
-            detailPaint={paintMode === "exclude" ? "excluded" : paintMode}
-            paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
-            currentStreet={currentStreet}
-            cells={villainCells}
-            board={currentBoard}
-            onDragPaint={(cellKeys, paint) => handleDragPaint("villain", cellKeys, paint)}
-            onCopyFromPrevious={() => handleCopyFromPrevious("villain")}
-            onClear={() => handleRangeClear("villain")}
-            referenceRanges={referenceRanges}
-            selectedReferenceRangeId={referenceRangeSelection.villain}
-            onReferenceRangeChange={(rangeId) =>
-              handleReferenceRangeChange("villain", rangeId)
-            }
+          <div className="player-switch" role="group" aria-label="表示するプレイヤー">
+            {(["hero", "villain"] as Player[]).map((player) => (
+              <button key={player} aria-pressed={activePlayer === player}
+                className={activePlayer === player ? "active" : ""}
+                onClick={() => setActivePlayer(player)}>
+                {player === "hero" ? "Hero" : "Villain"}
+                <small>{stats[player].includedTotal} combos</small>
+              </button>
+            ))}
+          </div>
+          <div className="grids-container">
+            {(["hero", "villain"] as Player[]).map((player) => (
+              <section key={player} className={`player-card ${activePlayer === player ? "player-active" : ""}`}
+                aria-label={player === "hero" ? "Hero" : "Villain"}>
+                <RangeGrid
+                  key={`${player}-${currentStreet}`}
+                  player={player}
+                  active={activePlayer === player}
+                  onActivate={() => setActivePlayer(player)}
+                  renderInspector={(panel) => activePlayer === player && inspectorHost ? createPortal(panel, inspectorHost) : null}
+                  comboEditing={comboEditing}
+                  selectionMode={selectionMode}
+                  detailPaint={paintMode === "exclude" ? "excluded" : paintMode}
+                  paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
+                  currentStreet={currentStreet}
+                  cells={rangeState[currentStreet][player]}
+                  board={currentBoard}
+                  onDragPaint={(cellKeys, paint) => handleDragPaint(player, cellKeys, paint)}
+                  onCopyFromPrevious={() => handleCopyFromPrevious(player)}
+                  onClear={() => handleRangeClear(player)}
+                  referenceRanges={referenceRanges}
+                  selectedReferenceRangeId={referenceRangeSelection[player]}
+                  onReferenceRangeChange={(rangeId) => handleReferenceRangeChange(player, rangeId)}
+                />
+                <StatsPanel player={player} stats={stats[player]} />
+              </section>
+            ))}
+          </div>
+          <p className="stage-hint">{comboEditing
+            ? "セルを選んで、コンボの内訳で個別に編集できます。"
+            : "左ドラッグで塗る / 右ドラッグで消す / Shiftで矩形 / Escでキャンセル"}</p>
+        </section>
+
+        <aside className={`editor-rail ${comboEditing ? "combo-editing" : ""}`} aria-label="編集ツール">
+          <ControlPanel
+            comboEditing={comboEditing} onComboEditingChange={setComboEditing}
+            selectionMode={selectionMode} onSelectionModeChange={setSelectionMode}
+            paintMode={paintMode} onPaintModeChange={setPaintMode}
+            flagMode={flagMode} onFlagModeChange={setFlagMode}
+            selectedFlagId={selectedFlagId} onSelectFlag={setSelectedFlagId}
+            canUndo={historyIndex >= 0} canRedo={historyIndex < history.length - 1}
+            onUndo={handleUndo} onRedo={handleRedo}
           />
-        </div>
-
-        <div className="stats-container">
-          <StatsPanel player="hero" stats={heroStats} />
-          <StatsPanel player="villain" stats={villainStats} />
-        </div>
-      </div>
-
-
+          <div className="inspector-dock">
+            <div className="dock-heading">
+              <span>コンボの内訳</span>
+              <strong>{activePlayer === "hero" ? "Hero" : "Villain"}</strong>
+            </div>
+            <div ref={setInspectorHost} />
+          </div>
+        </aside>
+      </main>
     </div>
   );
 }

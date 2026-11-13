@@ -5,6 +5,7 @@ import {
   RangeState,
   CellState,
   PaintMode,
+  PaintOperation,
   SelectionMode,
   FlagMode,
   HistoryEntry,
@@ -20,7 +21,7 @@ import { RangeGrid } from "./components/RangeGrid";
 import { ControlPanel } from "./components/ControlPanel";
 import { StatsPanel } from "./components/StatsPanel";
 import { BoardInput } from "./components/BoardInput";
-import { getPaintState } from "./utils/painting";
+import { getPaintState, applyPaint } from "./utils/painting";
 import "./App.css";
 
 // 初期状態生成
@@ -28,7 +29,7 @@ function createInitialRangeState(): RangeState {
   const cellKeys = generateCellKeys();
   const initialCells: Record<string, CellState> = {};
   for (const key of cellKeys) {
-    initialCells[key] = { baseState: "excluded", override: null };
+    initialCells[key] = { combos: {} };
   }
 
   const rangeState: RangeState = {
@@ -45,6 +46,7 @@ function App() {
   const [rangeState, setRangeState] = useState<RangeState>(createInitialRangeState);
   const [currentStreet, setCurrentStreet] = useState<Street>("pre");
   const [paintMode, setPaintMode] = useState<PaintMode>("value");
+  const [comboEditing, setComboEditing] = useState(false);
   const [selectionMode, setSelectionMode] = useState<SelectionMode>("brush");
   const [flagMode, setFlagMode] = useState<FlagMode>("off");
   const [selectedFlagId, setSelectedFlagId] = useState<string | null>(null);
@@ -70,7 +72,7 @@ function App() {
   const [historyIndex, setHistoryIndex] = useState(-1);
 
   // ドラッグ塗り処理（プレイヤー指定版）
-  const handleDragPaint = (player: Player, cellKeys: string[], after: CellState) => {
+  const handleDragPaint = (player: Player, cellKeys: string[], operation: PaintOperation) => {
     const patches: {
       cellKey: string;
       before: CellState;
@@ -81,7 +83,8 @@ function App() {
 
     for (const cellKey of cellKeys) {
       const before = newCells[cellKey];
-      if (JSON.stringify(before) === JSON.stringify(after)) continue;
+      const after = applyPaint(cellKey, before, operation);
+      if (before === after) continue;
 
       patches.push({ cellKey, before, after });
       newCells[cellKey] = after;
@@ -214,7 +217,7 @@ function App() {
 
     for (const cellKey of cellKeys) {
       const before = currentCells[cellKey];
-      const after: CellState = { baseState: "excluded", override: null };
+      const after: CellState = { combos: {} };
       patches.push({ cellKey, before, after });
       newCells[cellKey] = after;
     }
@@ -316,6 +319,8 @@ function App() {
       />
 
       <ControlPanel
+        comboEditing={comboEditing}
+        onComboEditingChange={setComboEditing}
         selectionMode={selectionMode}
         onSelectionModeChange={setSelectionMode}
         paintMode={paintMode}
@@ -335,10 +340,13 @@ function App() {
           <RangeGrid
             key={`hero-${currentStreet}`}
             player="hero"
+            comboEditing={comboEditing}
             selectionMode={selectionMode}
+            detailPaint={paintMode === "exclude" ? "excluded" : paintMode}
             paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
             currentStreet={currentStreet}
             cells={heroCells}
+            board={currentBoard}
             onDragPaint={(cellKeys, paint) => handleDragPaint("hero", cellKeys, paint)}
             onCopyFromPrevious={() => handleCopyFromPrevious("hero")}
             onClear={() => handleRangeClear("hero")}
@@ -351,10 +359,13 @@ function App() {
           <RangeGrid
             key={`villain-${currentStreet}`}
             player="villain"
+            comboEditing={comboEditing}
             selectionMode={selectionMode}
+            detailPaint={paintMode === "exclude" ? "excluded" : paintMode}
             paintState={getPaintState(paintMode, flagMode, selectedFlagId)}
             currentStreet={currentStreet}
             cells={villainCells}
+            board={currentBoard}
             onDragPaint={(cellKeys, paint) => handleDragPaint("villain", cellKeys, paint)}
             onCopyFromPrevious={() => handleCopyFromPrevious("villain")}
             onClear={() => handleRangeClear("villain")}

@@ -607,3 +607,42 @@ body {
 .control-section { margin-bottom: 0; }
 .paint-help { flex-basis: 100%; order: 10; color: #bbb; font-size: 0.85rem; }
 .paint-warning { flex-basis: 100%; order: 11; color: #ffcc80; }
+
+/* セルは結果を表示し、スート条件は内訳パネルで確認する。 */
+.range-grid-container { width: min-content; }
+.cell { flex-direction: column; gap: 3px; }
+.cell-value { background-color: #17394f; }
+.cell-bluff { background-color: #4d2528; }
+.cell-inspected { box-shadow: inset 0 0 0 1px #c8d8e5; }
+.cell-highlighted.cell-inspected { box-shadow: inset 0 0 0 2px #ff9800; }
+.cell:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.suit-results { display: flex; gap: 1px; width: calc(100% - 4px); }
+.combo-result { flex: 1; min-width: 0; }
+.suit-results .combo-result { font-size: 10px; line-height: 13px; text-align: center; border-radius: 2px; }
+.combo-bar { display: flex; gap: 1px; width: calc(100% - 6px); height: 6px; }
+.result-value { background: #2196f3; color: white; }
+.result-bluff { background: #e34d53; color: white; }
+.result-excluded { background: #30363c; color: #84909b; }
+.result-blocked { background: repeating-linear-gradient(135deg, #59626a 0 2px, #252a30 2px 5px); color: #d6dde3; }
+.combo-inspector { width: 100%; padding: 14px; margin-top: 8px; background: #20272e; border: 1px solid #3b4650; border-radius: 8px; }
+.inspector-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.inspector-heading strong { font-size: 1.1rem; }
+.inspector-heading small, .inspector-heading > span { font-size: 0.8rem; color: #bdcbd7; }
+.inspector-condition { margin-top: 8px; font-size: 0.8rem; color: #bdcbd7; }
+.combo-legend { display: flex; gap: 8px 14px; flex-wrap: wrap; margin: 10px 0; font-size: 0.75rem; }
+.combo-legend span:first-child { color: #79c3ff; }
+.combo-legend span:nth-child(2) { color: #ff9599; }
+.combo-detail-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; min-height: 154px; align-content: start; }
+.combo-detail { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; height: 48px; border-radius: 4px; }
+.combo-detail strong { font-size: 0.9rem; }
+.combo-detail small { font-size: 0.65rem; }
+.inspector-hint { margin-top: 10px; color: #9caab7; font-size: 0.75rem; line-height: 1.5; }
+
+.combo-detail { border: 1px solid #53606c; cursor: pointer; font: inherit; }
+.combo-detail:hover:not(:disabled) { outline: 2px solid white; }
+.combo-detail:disabled { cursor: not-allowed; }
+
+.combo-editing .cell { cursor: pointer; }
+.combo-editing .cell-inspected { outline: 3px solid #ffe082; outline-offset: -2px; }
+.combo-editing .selection-status { color: #ffe082; }
+.combo-editing .combo-inspector { border-color: #ffe082; }

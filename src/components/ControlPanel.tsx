@@ -2,6 +2,8 @@ import { PaintMode, FlagMode, SelectionMode } from "../types";
 import { FlagPalette } from "./FlagPalette";
 
 type Props = {
+  comboEditing: boolean;
+  onComboEditingChange: (editing: boolean) => void;
   selectionMode: SelectionMode;
   onSelectionModeChange: (mode: SelectionMode) => void;
   paintMode: PaintMode;
@@ -17,6 +19,8 @@ type Props = {
 };
 
 export function ControlPanel({
+  comboEditing,
+  onComboEditingChange,
   selectionMode,
   onSelectionModeChange,
   paintMode,
@@ -33,14 +37,21 @@ export function ControlPanel({
   return (
     <div className="control-panel">
       <div className="control-section">
+        <h4>操作</h4>
+        <div className="button-group">
+          <button aria-pressed={!comboEditing} className={!comboEditing ? "active" : ""} onClick={() => onComboEditingChange(false)}>塗る</button>
+          <button aria-pressed={comboEditing} className={comboEditing ? "active" : ""} onClick={() => onComboEditingChange(true)}>コンボ編集</button>
+        </div>
+      </div>
+      {!comboEditing && <div className="control-section">
         <h4>塗り方</h4>
         <div className="button-group">
           <button aria-pressed={selectionMode === "brush"} className={selectionMode === "brush" ? "active" : ""} onClick={() => onSelectionModeChange("brush")}>ドラッグ</button>
           <button aria-pressed={selectionMode === "rectangle"} className={selectionMode === "rectangle" ? "active" : ""} onClick={() => onSelectionModeChange("rectangle")}>矩形</button>
         </div>
-      </div>
-      <p className="paint-help">左ドラッグで上書き、右ドラッグで消去。Shift併用で矩形指定、Escでキャンセル。</p>
-      {flagMode !== "off" && paintMode !== "exclude" && !selectedFlagId && (
+      </div>}
+      <p className="paint-help">{comboEditing ? "セルをクリックして編集対象を固定。下の内訳をクリックして選択色で塗り、右クリックで消します。" : "左ドラッグは対象コンボだけ上書き（対象外は維持）。右ドラッグはセル全体を消去。Shiftで矩形、Escでキャンセル。"}</p>
+      {!comboEditing && flagMode !== "off" && !selectedFlagId && (
         <p className="paint-warning" role="status">塗るスート条件を選んでください。</p>
       )}
       <div className="control-section">
@@ -67,31 +78,31 @@ export function ControlPanel({
         </div>
       </div>
 
-      <div className="control-section">
-        <h4>Flag モード</h4>
+      {!comboEditing && <div className="control-section">
+        <h4>塗る対象</h4>
         <div className="button-group">
           <button
             className={flagMode === "off" ? "active" : ""}
             onClick={() => onFlagModeChange("off")}
           >
-            OFF
+            全コンボ
           </button>
           <button
             className={flagMode === "only" ? "active" : ""}
             onClick={() => onFlagModeChange("only")}
           >
-            ONLY
+            条件に一致
           </button>
           <button
             className={flagMode === "except" ? "active" : ""}
             onClick={() => onFlagModeChange("except")}
           >
-            EXCEPT
+            条件に一致しない
           </button>
         </div>
-      </div>
+      </div>}
 
-      {flagMode !== "off" && (
+      {!comboEditing && flagMode !== "off" && (
         <FlagPalette selectedFlagId={selectedFlagId} onSelectFlag={onSelectFlag} />
       )}
 

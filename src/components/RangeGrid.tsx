@@ -1,16 +1,21 @@
 import { useState, useRef, useEffect, PointerEvent as ReactPointerEvent } from "react";
-import { CellState, Player, Street, SelectionMode } from "../types";
+import { CellState, Player, Street, SelectionMode, CardId, PaintOperation, BaseState } from "../types";
 import { ReferenceRange } from "../data/referenceRanges";
 import { getCellKeyAt } from "../utils/rangeMatrix";
 import { Cell } from "./Cell";
+import { applyPaint } from "../utils/painting";
+import { ComboInspector } from "./ComboInspector";
 
 type Props = {
+  comboEditing: boolean;
   player: Player;
   selectionMode: SelectionMode;
-  paintState: CellState | null;
+  paintState: PaintOperation | null;
+  detailPaint: BaseState;
   currentStreet: Street;
   cells: Record<string, CellState>;
-  onDragPaint: (cellKeys: string[], paint: CellState) => void;
+  board: CardId[];
+  onDragPaint: (cellKeys: string[], paint: PaintOperation) => void;
   onCopyFromPrevious: () => void;
   onClear: () => void;
   referenceRanges: ReferenceRange[];
@@ -19,11 +24,14 @@ type Props = {
 };
 
 export function RangeGrid({
+  comboEditing,
   player,
   selectionMode,
   paintState,
+  detailPaint,
   currentStreet,
   cells,
+  board,
   onDragPaint,
   onCopyFromPrevious,
   onClear,
@@ -31,13 +39,14 @@ export function RangeGrid({
   selectedReferenceRangeId,
   onReferenceRangeChange,
 }: Props) {
+  const [inspectedKey, setInspectedKey] = useState("AKs");
   const gridRef = useRef<HTMLDivElement>(null);
   // captureで外側のリリースも受け取る。確定前の変更はプレビュー内に閉じ、Undoは1手にまとめる。
   const gesture = useRef<{
     pointerId: number; start: [number, number]; last: [number, number] | null;
-    rectangle: boolean; keys: Set<string>; paint: CellState;
+    rectangle: boolean; keys: Set<string>; paint: PaintOperation;
   } | null>(null);
-  const [preview, setPreview] = useState<{ keys: Set<string>; paint: CellState } | null>(null);
+  const [preview, setPreview] = useState<{ keys: Set<string>; paint: PaintOperation } | null>(null);
 
   const cancel = () => {
     const active = gesture.current;
@@ -66,6 +75,9 @@ export function RangeGrid({
       window.removeEventListener("blur", cancel);
     };
   }, []);
+
+  // モード切替時に未確定の塗りを破棄し、編集モードへ持ち越さない。
+  useEffect(() => { cancel(); }, [comboEditing]);
 
   const position = (event: ReactPointerEvent<HTMLDivElement>): [number, number] | null => {
     const grid = gridRef.current;
@@ -110,15 +122,17 @@ export function RangeGrid({
         ));
       }
     }
+    setInspectedKey(getCellKeyAt(point[0], point[1]));
     active.last = point;
     setPreview({ keys: new Set(active.keys), paint: active.paint });
   };
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (comboEditing) return;
     if ((event.button !== 0 && event.button !== 2) || !event.isPrimary || gesture.current) return;
     // 右ボタンは一時的な消しゴム。選択中の色・Flagを変えず、条件未選択でも消去できる。
-    const paint: CellState | null = event.button === 2
-      ? { baseState: "excluded", override: null }
+    const paint: PaintOperation | null = event.button === 2
+      ? { state: "excluded", mode: "off", flagId: null }
       : paintState;
     if (!paint) return;
     const point = position(event);
@@ -158,7 +172,7 @@ export function RangeGrid({
   const highlightedCells = new Set(selectedRange?.cells || []);
 
   return (
-    <div className="range-grid-container">
+    <div className={`range-grid-container ${comboEditing ? "combo-editing" : ""}`}>
       <div className="grid-header">
         <h3 className="player-title">{player === "hero" ? "Hero" : "Villain"}</h3>
         <div className="reference-range-selector">
@@ -189,13 +203,18 @@ export function RangeGrid({
         {Array.from({ length: 13 }).map((_, row) =>
           Array.from({ length: 13 }).map((_, col) => {
             const cellKey = getCellKeyAt(row, col);
-            const cellState = preview?.keys.has(cellKey) ? preview.paint : cells[cellKey];
+            const cellState = preview?.keys.has(cellKey) ? applyPaint(cellKey, cells[cellKey], preview.paint) : cells[cellKey];
             const isHighlighted = highlightedCells.has(cellKey);
             return (
               <Cell
                 key={cellKey}
                 cellKey={cellKey}
                 cellState={cellState}
+                board={board}
+                isInspected={inspectedKey === cellKey}
+                onInspect={() => { if (!comboEditing) setInspectedKey(cellKey); }}
+                editing={comboEditing}
+                onSelect={() => { if (comboEditing) setInspectedKey(cellKey); }}
                 isHighlighted={isHighlighted}
                 isPreview={preview?.keys.has(cellKey) ?? false}
               />
@@ -204,8 +223,12 @@ export function RangeGrid({
         )}
       </div>
       <div className="selection-status" aria-live="polite">
-        {preview ? preview.keys.size + (preview.paint.baseState === "excluded" ? "セル消去中" : "セル選択中") + " · 離して確定 / Escでキャンセル" : "左で塗る · 右で消す · Shiftで矩形指定"}
+        {comboEditing ? inspectedKey + "を編集中 · 別のセルをクリックして変更" : preview ? preview.keys.size + (preview.paint.state === "excluded" ? "セル消去中" : "セル選択中") + " · 離して確定 / Escでキャンセル" : "左で塗る · 右で消す · Shiftで矩形指定"}
       </div>
+      <ComboInspector editing={comboEditing} cellKey={inspectedKey}
+        cellState={preview?.keys.has(inspectedKey) ? applyPaint(inspectedKey, cells[inspectedKey], preview.paint) : cells[inspectedKey]}
+        onPaintCombo={(comboId, erase) => { if (comboEditing) onDragPaint([inspectedKey], { state: erase ? "excluded" : detailPaint, mode: "off", flagId: null, comboId }); }}
+        board={board} isPreview={preview?.keys.has(inspectedKey) ?? false} />
       <div className="grid-footer">
         <div className="grid-footer-left">
           {player === "hero" ? (

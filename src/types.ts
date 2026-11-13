@@ -1,17 +1,15 @@
 // 基本状態
 export type BaseState = "excluded" | "value" | "bluff";
 
-// オーバーライド（フラグによる例外）
-export type Override =
-  | null
-  | { flagId: string; mode: "only"; state: "value" | "bluff" }
-  | { flagId: string; mode: "except" };
+// 未登録コンボはExclude。更新時は新しいオブジェクトを作り、履歴・ストリート間で共有した状態を変更しない。
+export type CellState = { combos: Record<string, BaseState> };
 
-// セル状態：overrideがある場合、baseStateは必ずvalue/bluffにする。
-// ONLYではoverride.stateもbaseStateと一致させ、表示色と集計上の分類を揃える。
-export type CellState = {
-  baseState: BaseState;
-  override: Override;
+// 条件は保存状態ではなく、その操作で上書きする対象。対象外の分類は維持する。
+export type PaintOperation = {
+  state: BaseState;
+  mode: FlagMode;
+  flagId: string | null;
+  comboId?: string;
 };
 
 // ストリート

@@ -1,16 +1,26 @@
-import { CellState, FlagMode, PaintMode } from "../types";
+import { CellState, FlagMode, PaintMode, PaintOperation } from "../types";
+import { generateCombosForCell, comboMatchesFlag } from "./combos";
 
-// プレビューと確定で同じ上書き結果を使う。ExcludeはFlagモードに関係なくセル全体を消す。
 export function getPaintState(
-  paintMode: PaintMode, flagMode: FlagMode, flagId: string | null,
-): CellState | null {
-  if (paintMode === "exclude") return { baseState: "excluded", override: null };
-  if (flagMode === "off") return { baseState: paintMode, override: null };
-  if (!flagId) return null;
-  return {
-    baseState: paintMode,
-    override: flagMode === "only"
-      ? { flagId, mode: "only", state: paintMode }
-      : { flagId, mode: "except" },
-  };
+  paintMode: PaintMode, mode: FlagMode, flagId: string | null,
+): PaintOperation | null {
+  if (mode !== "off" && !flagId) return null;
+  return { state: paintMode === "exclude" ? "excluded" : paintMode, mode, flagId };
+}
+
+// ボードは分類を書き換えない。使用不可は表示・集計時に判定する。
+export function applyPaint(cellKey: string, before: CellState, operation: PaintOperation): CellState {
+  const combos = { ...before.combos };
+  let changed = false;
+  for (const id of generateCombosForCell(cellKey)) {
+    const selected = operation.comboId
+      ? id === operation.comboId
+      : operation.mode === "off" || (operation.flagId !== null &&
+        comboMatchesFlag(id, operation.flagId) === (operation.mode === "only"));
+    if (!selected || (combos[id] ?? "excluded") === operation.state) continue;
+    changed = true;
+    if (operation.state === "excluded") delete combos[id];
+    else combos[id] = operation.state;
+  }
+  return changed ? { combos } : before;
 }

@@ -1,33 +1,5 @@
-import { BaseState, CellState, Override, Stats, CardId } from "../types";
-import { generateCombosForCell, comboMatchesFlag } from "./combos";
-
-// コンボの最終状態を計算（override適用後）
-function getFinalStateForCombo(
-  comboId: string,
-  baseState: BaseState,
-  override: Override
-): "value" | "bluff" | "excluded" {
-  if (!override) {
-    // overrideなし：baseStateをそのまま返す
-    return baseState;
-  }
-
-  if (override.mode === "only") {
-    // ONLY：フラグ一致 → override.state、それ以外 → excluded
-    if (comboMatchesFlag(comboId, override.flagId)) {
-      return override.state;
-    } else {
-      return "excluded";
-    }
-  } else {
-    // EXCEPT：フラグ一致 → excluded、それ以外 → baseState
-    if (comboMatchesFlag(comboId, override.flagId)) {
-      return "excluded";
-    } else {
-      return baseState;
-    }
-  }
-}
+import { BaseState, CellState, Stats, CardId } from "../types";
+import { generateCombosForCell } from "./combos";
 
 // コンボがボードのカードと重複しているかチェック
 function comboOverlapsWithBoard(comboId: string, board: CardId[]): boolean {
@@ -36,6 +8,26 @@ function comboOverlapsWithBoard(comboId: string, board: CardId[]): boolean {
   const card2 = comboId.slice(2, 4); // "Kh"
 
   return board.includes(card1) || board.includes(card2);
+}
+
+export type ComboDetail = {
+  id: string;
+  state: BaseState | "blocked";
+  reason: string;
+};
+
+// 集計と表示で同じ判定を使い、ボードによる使用不可と手動の除外を区別する。
+export function getComboDetails(cellKey: string, cellState: CellState, board: CardId[] = []): ComboDetail[] {
+  return generateCombosForCell(cellKey).map((id) => {
+    if (comboOverlapsWithBoard(id, board)) {
+      return { id, state: "blocked", reason: "ボードと重複" };
+    }
+    const state = cellState.combos[id] ?? "excluded";
+    return {
+      id, state,
+      reason: state === "excluded" ? "Exclude" : state === "value" ? "Value" : "Bluff",
+    };
+  });
 }
 
 // セルの全コンボ状態を計算
@@ -47,28 +39,9 @@ export function calculateCellCombos(
   valueCombos: number;
   bluffCombos: number;
 } {
-  const combos = generateCombosForCell(cellKey);
-  let valueCombos = 0;
-  let bluffCombos = 0;
-
-  for (const comboId of combos) {
-    // ボードと重複するコンボは除外
-    if (comboOverlapsWithBoard(comboId, board)) {
-      continue;
-    }
-
-    const finalState = getFinalStateForCombo(
-      comboId,
-      cellState.baseState,
-      cellState.override
-    );
-
-    if (finalState === "value") {
-      valueCombos++;
-    } else if (finalState === "bluff") {
-      bluffCombos++;
-    }
-  }
+  const details = getComboDetails(cellKey, cellState, board);
+  const valueCombos = details.filter((combo) => combo.state === "value").length;
+  const bluffCombos = details.filter((combo) => combo.state === "bluff").length;
 
   return { valueCombos, bluffCombos };
 }

@@ -283,6 +283,7 @@ function App() {
   // キーボードショートカット
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (window.location.hash === "#/trainer") return;
       if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
@@ -312,6 +313,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="brand"><span className="brand-mark" aria-hidden="true">▦</span><h1>Range Painter</h1></div>
+        <a href="#/trainer" style={{ color: "var(--accent)", fontSize: 12 }}>Preflop Trainer →</a>
         <StreetTabs currentStreet={currentStreet} onStreetChange={setCurrentStreet} />
       </header>
 

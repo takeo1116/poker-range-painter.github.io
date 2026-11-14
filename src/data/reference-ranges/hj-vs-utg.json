@@ -30,5 +30,12 @@
       "77",
       "65s"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "HJ",
+    "opener": "UTG",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

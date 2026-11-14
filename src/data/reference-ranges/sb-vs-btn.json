@@ -42,5 +42,12 @@
       "88",
       "77"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "SB",
+    "opener": "BTN",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

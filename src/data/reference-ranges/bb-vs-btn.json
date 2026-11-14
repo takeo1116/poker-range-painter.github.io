@@ -130,5 +130,12 @@
       "54s",
       "A4o"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "BB",
+    "opener": "BTN",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

@@ -114,5 +114,12 @@
       "A5o",
       "A3o"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "BB",
+    "opener": "CO",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

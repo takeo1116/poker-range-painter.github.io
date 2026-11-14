@@ -5,6 +5,7 @@ import { editorHistory, EditorAction } from "./referenceEditorModel";
 import { ReferenceEditorGrid } from "./ReferenceEditorGrid";
 import "../App.css";
 import "./reference-editor.css";
+import { ScenarioFields } from "./ScenarioFields";
 
 const DRAFT_KEY = "range-painter.reference-editor.draft.v1";
 const blank = (): ReferenceRange => ({ id: "", name: "", groups: { call: [], raise: [] } });
@@ -121,6 +122,7 @@ export default function ReferenceRangeEditor() {
           <p className="editor-tip">IDは英数字とハイフン。ファイル名は「ID.json」です。</p>
           {referenceRanges.some(range => range.id === document.id) && <p className="editor-tip">既存のIDです。書き出したファイルで同名のJSONを置き換えると更新できます。</p>}
         </section>
+        <ScenarioFields document={document} onChange={commit} />
         <section>
           <h2>読み込み・新規作成</h2>
           <div className="editor-load">

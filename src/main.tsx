@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react'
+import React, { lazy, Suspense, useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 
@@ -8,8 +8,20 @@ const Editor = import.meta.env.DEV && window.location.pathname.replace(/\/$/, ''
   ? lazy(() => import('./dev/ReferenceRangeEditor'))
   : null
 
+const Trainer = lazy(() => import('./trainer/Trainer'))
+function Router() {
+  const [hash, setHash] = useState(window.location.hash)
+  useEffect(() => {
+    const change = () => setHash(window.location.hash)
+    window.addEventListener('hashchange', change)
+    return () => window.removeEventListener('hashchange', change)
+  }, [])
+  if (Editor) return <Suspense fallback={<p>作成画面を読み込み中…</p>}><Editor /></Suspense>
+  return <><div hidden={hash === '#/trainer'}><App /></div>{hash === '#/trainer' && <Suspense fallback={<p>Trainerを読み込み中…</p>}><Trainer /></Suspense>}</>
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {Editor ? <Suspense fallback={<p>作成画面を読み込み中…</p>}><Editor /></Suspense> : <App />}
+    <Router />
   </React.StrictMode>,
 )

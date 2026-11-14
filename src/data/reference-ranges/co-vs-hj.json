@@ -37,5 +37,12 @@
       "77",
       "66"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "CO",
+    "opener": "HJ",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

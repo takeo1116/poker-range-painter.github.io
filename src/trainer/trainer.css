@@ -1,0 +1,45 @@
+.trainer { max-width: 1160px; margin: auto; padding: 24px; }
+.trainer a { color: var(--accent); font-size: 13px; }
+.trainer-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.trainer h1 { font-size: 24px; }.trainer h3 { font-size: 14px; }
+.trainer-eyebrow { font-size: 10px; letter-spacing: 2px; color: var(--accent); margin-bottom: 6px; }
+.trainer-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; align-items: start; }
+.trainer-practice, .trainer-feedback, .trainer-settings { min-width: 0; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 20px; }
+.trainer-practice { align-self: stretch; display: grid; align-content: center; }
+.trainer-question { text-align: center; }.trainer-question h2 { font-size: 24px; }
+.trainer-cards { display: flex; justify-content: center; gap: 12px; margin: 24px 0; }
+.trainer-card { width: 92px; height: 124px; background: #f6f4ef; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 38px; font-weight: 700; box-shadow: 0 7px 20px #0004; }
+.trainer-card.suit-s { color: #17212b; }.trainer-card.suit-h { color: #b62237; }.trainer-card.suit-d { color: #1466b8; }.trainer-card.suit-c { color: #24783b; }
+.trainer-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.trainer-actions button { font-size: 16px; min-height: 50px; }.trainer kbd { font: inherit; font-size: 11px; opacity: .6; margin-left: 10px; }
+.trainer-actions button:disabled { opacity: .65; }.trainer-actions button.correct { border-color: #83d4b1; background: #284c40; opacity: 1; }.trainer-actions button.chosen { box-shadow: inset 0 0 0 2px #dde7ef; opacity: 1; }
+.trainer-result { display: flex; justify-content: space-between; align-items: center; gap: 10px; height: 64px; font-size: 13px; }.trainer-result p { margin-top: 4px; }.trainer-result span { color: var(--muted); }.trainer-success { color: #83d4b1; }.trainer-error { color: #ffabb0; }.trainer-next { min-height: 44px; }
+.trainer-section-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 16px 0 10px; }.trainer-section-title span { font-size: 11px; color: var(--muted); }.trainer-section-title button { margin-left: 5px; }
+.trainer-matrix { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; }
+.trainer .trainer-cell { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 1; min-height: 0; min-width: 0; padding: 0; border: 0; border-radius: 2px; background: #25313a; color: #b7c6d0; font-size: clamp(9px, 1.1vw, 12px); }
+.trainer .trainer-cell.pair { background: #35414c; }.trainer .trainer-cell.selected { background: #315d4c; color: #e5fff3; }.trainer .trainer-cell.current { background: #796028; color: white; outline: 3px solid #ffe08a; outline-offset: 2px; z-index: 3; font-weight: 800; box-shadow: 0 0 18px #ffe08a99; }
+.trainer-feedback { padding-top: 8px; }
+.trainer-review { width: min(100%, max(286px, calc(100dvh - 260px)) ); margin: 8px auto 0; }
+.trainer-settings { grid-column: 1 / -1; }
+.trainer-settings-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+.trainer-settings summary { cursor: pointer; font-weight: 600; }.trainer-settings summary span { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 8px; }.trainer-note { color: var(--muted); font-size: 11px; line-height: 1.7; margin-top: 14px; }.trainer-presets { display: flex; gap: 6px; margin-bottom: 10px; }.trainer-range-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }.trainer-range-list label { display: flex; align-items: center; gap: 8px; min-height: 36px; font-size: 13px; cursor: pointer; }.trainer-range-list input { accent-color: #83d4b1; width: 17px; height: 17px; }.trainer-empty { padding: 48px 0; line-height: 1.8; }.trainer-empty h2 { font-size: 19px; }
+@media (max-width: 800px) { .trainer { padding: 16px; }.trainer-layout { grid-template-columns: 1fr; gap: 16px; }.trainer-settings-columns { grid-template-columns: 1fr; gap: 4px; }.trainer-review { width: 100%; }.trainer-practice, .trainer-feedback, .trainer-settings { padding: 16px; }.trainer .trainer-cell { font-size: clamp(9px, 2.6vw, 14px); }.trainer-header { margin-bottom: 16px; }.trainer h1 { font-size: 20px; } }
+@media (prefers-reduced-motion: no-preference) { .trainer-cell.current { animation: trainer-highlight .35s ease-out; } @keyframes trainer-highlight { from { box-shadow: 0 0 28px #ffe08a; } } }
+
+.trainer-sound-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 18px; font-size: 13px; }
+.trainer-sound-controls label { display: flex; align-items: center; gap: 8px; }
+.trainer-sound-controls input { accent-color: #83d4b1; }
+.trainer-sound-controls input[type="range"] { width: 120px; }
+.trainer-sound-controls span { min-width: 36px; }
+
+.trainer-table { margin: 12px auto 0; max-width: 420px; }
+.trainer-table figcaption { color: var(--muted); font-size: 11px; margin-bottom: 6px; }
+.trainer-table svg { display: block; width: 100%; overflow: visible; }
+.trainer-table-felt { fill: #1c302b; stroke: #395449; stroke-width: 3; }
+.trainer-table-caption { fill: #aac1b8; font-size: 12px; }
+.trainer-seat rect { fill: #202c33; stroke: #4b5b66; stroke-width: 1.5; }
+.trainer-seat text { fill: #c1cdd6; }.trainer-seat-position { font-size: 14px; font-weight: 700; }.trainer-seat-action { font-size: 9px; }
+.trainer-seat.hero rect { fill: #284c40; stroke: #83d4b1; stroke-width: 2; }.trainer-seat.hero text { fill: #ceffea; }
+.trainer-seat.opener rect { fill: #4a3727; stroke: #ffb454; stroke-width: 2; }.trainer-seat.opener text { fill: #ffce8e; }
+.trainer-seat.folded { opacity: .48; }.trainer-dealer circle { fill: #e1e7eb; }.trainer-dealer text { fill: #17212b; font-size: 10px; font-weight: 700; }
+.trainer-table + .trainer-cards { margin: 14px 0; }.trainer-table + .trainer-cards .trainer-card { width: 72px; height: 92px; font-size: 29px; }

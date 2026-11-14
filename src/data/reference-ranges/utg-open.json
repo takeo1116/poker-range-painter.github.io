@@ -48,5 +48,11 @@
       "66",
       "55"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "UTG",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

@@ -1,7 +1,10 @@
+import { parseScenario } from "./rangeScenario";
+import type { RangeScenario } from "./rangeScenario";
 export type ReferenceGroup = "call" | "raise";
 export type ReferenceRange = {
   id: string;
   name: string;
+  scenario?: RangeScenario;
   groups: Partial<Record<ReferenceGroup, string[]>>;
 };
 
@@ -20,7 +23,7 @@ function object(value: unknown): value is Record<string, unknown> {
 export function parseReferenceRange(value: unknown, source = "レンジ", draft = false): ReferenceRange {
   const fail = (message: string): never => { throw new Error(source + ": " + message); };
   if (!object(value)) return fail("オブジェクトが必要です");
-  if (Object.keys(value).some(key => !["id", "name", "groups"].includes(key))) return fail("不明な項目があります");
+  if (Object.keys(value).some(key => !["id", "name", "groups", "scenario"].includes(key))) return fail("不明な項目があります");
   if (typeof value.id !== "string" || (!draft && !/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$/.test(value.id))) return fail("idは英数字とハイフンで指定してください");
   if (typeof value.name !== "string" || (!draft && !value.name.trim())) return fail("nameを入力してください");
   if (!object(value.groups) || !Object.keys(value.groups).length) return fail("groupsにcallまたはraiseが必要です");
@@ -37,7 +40,12 @@ export function parseReferenceRange(value: unknown, source = "レンジ", draft 
     groups[key] = [...seen];
   }
   // グループをまたぐ重複は混合アクションとして意図的に許可する。
-  return { id: value.id, name: value.name, groups };
+  let scenario: RangeScenario | undefined;
+  if (value.scenario !== undefined) {
+    try { scenario = parseScenario(value.scenario); }
+    catch (error) { return fail((error as Error).message); }
+  }
+  return { id: value.id, name: value.name, groups, ...(scenario ? { scenario } : {}) };
 }
 
 export function validateReferenceCollection(entries: Record<string, unknown>): ReferenceRange[] {

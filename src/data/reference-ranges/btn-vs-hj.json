@@ -64,5 +64,12 @@
       "77",
       "66"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "BTN",
+    "opener": "HJ",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

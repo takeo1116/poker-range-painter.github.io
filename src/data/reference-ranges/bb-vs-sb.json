@@ -150,5 +150,12 @@
       "A3o",
       "A2o"
     ]
+  },
+  "scenario": {
+    "tableSize": 6,
+    "hero": "BB",
+    "opener": "SB",
+    "stackBb": 100,
+    "stakes": "NL50"
   }
 }

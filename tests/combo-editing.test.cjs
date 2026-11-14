@@ -68,6 +68,7 @@ function setup(editing) {
     effects.forEach(callback => callback());
     effects = [];
     return {
+      control: label => nodes.find(node => node.type === "button" && node.props["aria-label"] === label),
       cell: key => nodes.find(node => node.type === Cell && node.props.cellKey === key),
       panel: nodes.find(node => node.type === ComboInspector),
       grid: nodes.find(node => node.props?.className === "range-grid"),
@@ -181,4 +182,59 @@ test("端数幅のセルでも最終列まで塗れ、非アクティブ側か�
   assert.equal(h.calls.length, 1);
   assert.equal(h.calls[0][0].length, 13);
   assert.equal(h.calls[0][0][12], "A2s");
+});
+
+test("参照のCall/Raiseが重なるセルを両方表示し、塗り状態を変更しない", () => {
+  const h = setup(false);
+  h.props.referenceRanges = [{ id: "test", name: "Test", groups: { call: ["AA", "KK"], raise: ["AA", "AKs"] } }];
+  h.props.selectedReferenceRangeId = "test";
+  const before = JSON.stringify(h.props.cells);
+  let view = h.render();
+  assert.ok(view.cell("AA").props.referenceCall);
+  assert.ok(view.cell("AA").props.referenceRaise);
+  assert.ok(view.cell("KK").props.referenceCall);
+  assert.equal(view.cell("KK").props.referenceRaise, false);
+  assert.equal(h.calls.length, 0);
+  assert.equal(JSON.stringify(h.props.cells), before);
+  h.props.selectedReferenceRangeId = null;
+  view = h.render();
+  assert.equal(view.cell("AA").props.referenceCall, false);
+  assert.equal(view.cell("AA").props.referenceRaise, false);
+});
+
+test("参照枠は片側・両側を切り替えても、塗りと元レンジを変更しない", () => {
+  const h = setup(false);
+  h.props.referenceRanges = [{ id: "mixed", name: "Mixed", groups: { call: ["AA"], raise: ["AA"] } }];
+  h.props.selectedReferenceRangeId = "mixed";
+  const before = JSON.stringify([h.props.cells, h.props.referenceRanges]);
+  let view = h.render();
+  view.control("Callの参照枠を表示").props.onClick();
+  view = h.render();
+  assert.equal(view.cell("AA").props.referenceCall, false);
+  assert.equal(view.cell("AA").props.referenceRaise, true);
+  view.control("Raiseの参照枠を表示").props.onClick();
+  view = h.render();
+  assert.equal(view.cell("AA").props.referenceCall, false);
+  assert.equal(view.cell("AA").props.referenceRaise, false);
+  view.control("Callの参照枠を表示").props.onClick();
+  view = h.render();
+  assert.equal(view.cell("AA").props.referenceCall, true);
+  assert.equal(view.cell("AA").props.referenceRaise, false);
+  view.control("Raiseの参照枠を表示").props.onClick();
+  view = h.render();
+  assert.equal(view.cell("AA").props.referenceRaise, true);
+  assert.equal(h.calls.length, 0);
+  assert.equal(JSON.stringify([h.props.cells, h.props.referenceRanges]), before);
+});
+
+test("内訳の各カードはスート別の表示を持ち、読み上げ名も維持する", () => {
+  const h = setup(true);
+  const nodes = h.flatten(h.ComboInspector(h.render().panel.props));
+  const cards = nodes.filter(node => node.props?.className?.startsWith("combo-card "));
+  assert.equal(cards.length, 8);
+  for (const suit of ["s", "h", "d", "c"]) {
+    assert.equal(cards.filter(node => node.props.className === "combo-card combo-card-" + suit).length, 2);
+  }
+  const buttons = nodes.filter(node => node.type === "button");
+  assert.ok(buttons.some(node => node.props["aria-label"].includes("A♠ K♠")));
 });

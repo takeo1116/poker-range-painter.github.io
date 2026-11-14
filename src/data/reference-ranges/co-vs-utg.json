@@ -1,0 +1,45 @@
+{
+  "id": "co-vs-utg",
+  "name": "CO vs UTG",
+  "groups": {
+    "call": [
+      "AJs",
+      "ATs",
+      "KQs",
+      "KJs",
+      "JJ",
+      "TT",
+      "99"
+    ],
+    "raise": [
+      "AA",
+      "AKs",
+      "AQs",
+      "AJs",
+      "ATs",
+      "A9s",
+      "A8s",
+      "A5s",
+      "A4s",
+      "A3s",
+      "AKo",
+      "KK",
+      "KQs",
+      "KJs",
+      "KTs",
+      "K9s",
+      "AQo",
+      "KQo",
+      "QQ",
+      "QJs",
+      "AJo",
+      "JJ",
+      "TT",
+      "99",
+      "88",
+      "77",
+      "66",
+      "65s"
+    ]
+  }
+}

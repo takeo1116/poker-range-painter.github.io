@@ -68,9 +68,7 @@ button:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px
 .cell:hover { filter: brightness(1.2); }
 .cell-excluded { color: #8d9da9; }
 .cell-value, .cell-bluff, .cell-mixed { color: #f3f6f8; }
-.cell-highlighted { box-shadow: inset 0 0 0 1px #ffb454; }
 .cell-inspected { outline: 1px solid #c8d8e5; outline-offset: -1px; }
-.cell-highlighted.cell-inspected { box-shadow: inset 0 0 0 2px #ffb454; }
 .cell-preview { outline: 2px solid #fff; outline-offset: -2px; }
 .cell:focus-visible { outline: 2px solid #ffe082; outline-offset: -1px; }
 .combo-editing .cell { cursor: pointer; }
@@ -209,3 +207,25 @@ button:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px
 
 /* 個別編集では縦スクロールを優先し、セルの選択はタップで行う。 */
 .combo-editing .range-grid { touch-action: pan-y; }
+
+.reference-outline, .reference-outline > span { position: absolute; inset: 0; border-radius: 2px; pointer-events: none; }
+.reference-outline { z-index: 2; }
+.reference-call { border: 2px solid #4caf50; }
+.reference-raise { border: 2px solid #ffb454; }
+.reference-outline > .reference-inner { inset: 3px; }
+.cell-inspected, .cell-preview, .cell:focus-visible, .combo-editing .cell-inspected { outline-offset: 0; }
+
+.reference-visibility { display: flex; gap: 3px; flex-shrink: 0; }
+.reference-toggle { position: relative; display: grid; place-items: center; width: 27px; min-height: 28px; padding: 4px; }
+.reference-toggle span { width: 15px; height: 15px; border: 2px solid var(--reference-color); border-radius: 2px; }
+.reference-toggle-call { --reference-color: #4caf50; }
+.reference-toggle-raise { --reference-color: #ffb454; }
+.reference-toggle[aria-pressed=true] { border-color: var(--reference-color); background: #2b3a40; }
+.reference-toggle[aria-pressed=false] span { opacity: .35; }
+.reference-toggle[aria-pressed=false]::after { content: ""; position: absolute; width: 19px; height: 1px; background: #a4afb7; transform: rotate(-45deg); }
+.combo-cards { display: flex; align-items: center; gap: 4px; }
+.combo-card { display: inline-flex; justify-content: center; align-items: center; gap: 1px; padding: 2px 3px; border-radius: 3px; background: #f5f7fa; line-height: 1.15; box-shadow: 0 1px 2px #0003; }
+.combo-card-s { color: #17212b; }
+.combo-card-h { color: #b62237; }
+.combo-card-d { color: #1466b8; }
+.combo-card-c { color: #24783b; }

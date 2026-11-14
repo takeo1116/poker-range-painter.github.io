@@ -1,0 +1,53 @@
+{
+  "id": "sb-vs-co",
+  "name": "SB vs CO",
+  "groups": {
+    "call": [
+      "AJs",
+      "ATs",
+      "A9s",
+      "KQs",
+      "KJs",
+      "KTs",
+      "QJs",
+      "TT",
+      "99",
+      "88",
+      "77",
+      "66"
+    ],
+    "raise": [
+      "AA",
+      "AKs",
+      "AQs",
+      "AJs",
+      "ATs",
+      "A9s",
+      "A7s",
+      "A6s",
+      "A5s",
+      "A4s",
+      "A3s",
+      "A2s",
+      "AKo",
+      "KK",
+      "KQs",
+      "KJs",
+      "KTs",
+      "K9s",
+      "K6s",
+      "AQo",
+      "KQo",
+      "QQ",
+      "QJs",
+      "QTs",
+      "AJo",
+      "KJo",
+      "JJ",
+      "JTs",
+      "TT",
+      "99",
+      "66"
+    ]
+  }
+}

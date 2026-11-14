@@ -45,6 +45,8 @@ export function RangeGrid({
   selectedReferenceRangeId,
   onReferenceRangeChange,
 }: Props) {
+  const [showCall, setShowCall] = useState(true);
+  const [showRaise, setShowRaise] = useState(true);
   const [inspectedKey, setInspectedKey] = useState("AKs");
   const gridRef = useRef<HTMLDivElement>(null);
   // captureで外側のリリースも受け取る。確定前の変更はプレビュー内に閉じ、Undoは1手にまとめる。
@@ -178,7 +180,8 @@ export function RangeGrid({
   const selectedRange = selectedReferenceRangeId
     ? referenceRanges.find((r) => r.id === selectedReferenceRangeId)
     : null;
-  const highlightedCells = new Set(selectedRange?.cells || []);
+  const callCells = new Set(selectedRange?.groups.call || []);
+  const raiseCells = new Set(selectedRange?.groups.raise || []);
 
   return (
     <div className={`range-grid-container ${comboEditing ? "combo-editing" : ""}`}>
@@ -197,10 +200,22 @@ export function RangeGrid({
             <option value="">なし</option>
             {referenceRanges.map((range) => (
               <option key={range.id} value={range.id}>
-                {range.label}
+                {range.name}
               </option>
             ))}
           </select>
+          {selectedRange && (
+            <div className="reference-visibility" role="group" aria-label="参照枠の表示切替">
+              <button type="button" className="reference-toggle reference-toggle-call"
+                aria-label="Callの参照枠を表示" aria-pressed={showCall}
+                title="Callの参照枠を表示／非表示" disabled={!callCells.size}
+                onClick={() => setShowCall(!showCall)}><span aria-hidden="true" /></button>
+              <button type="button" className="reference-toggle reference-toggle-raise"
+                aria-label="Raiseの参照枠を表示" aria-pressed={showRaise}
+                title="Raiseの参照枠を表示／非表示" disabled={!raiseCells.size}
+                onClick={() => setShowRaise(!showRaise)}><span aria-hidden="true" /></button>
+            </div>
+          )}
         </div>
       </div>
       <div className="range-grid" ref={gridRef}
@@ -213,7 +228,7 @@ export function RangeGrid({
           Array.from({ length: 13 }).map((_, col) => {
             const cellKey = getCellKeyAt(row, col);
             const cellState = preview?.keys.has(cellKey) ? applyPaint(cellKey, cells[cellKey], preview.paint) : cells[cellKey];
-            const isHighlighted = highlightedCells.has(cellKey);
+
             return (
               <Cell
                 key={cellKey}
@@ -224,7 +239,8 @@ export function RangeGrid({
                 onInspect={() => { if (!comboEditing) { setInspectedKey(cellKey); onActivate(); } }}
                 editing={comboEditing}
                 onSelect={() => { if (comboEditing) { setInspectedKey(cellKey); onActivate(); } }}
-                isHighlighted={isHighlighted}
+                referenceCall={showCall && callCells.has(cellKey)}
+                referenceRaise={showRaise && raiseCells.has(cellKey)}
                 isPreview={preview?.keys.has(cellKey) ?? false}
               />
             );

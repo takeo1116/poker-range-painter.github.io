@@ -1,3 +1,4 @@
+import { ReferenceOutline } from "./ReferenceOutline";
 import { CardId, CellState } from "../types";
 import { SUIT_SYMBOLS } from "../utils/combos";
 import { getComboDetails } from "../utils/calculations";
@@ -8,13 +9,14 @@ type Props = {
   cellKey: string;
   cellState: CellState;
   board: CardId[];
-  isHighlighted: boolean;
+  referenceCall: boolean;
+  referenceRaise: boolean;
   isPreview: boolean;
   isInspected: boolean;
   onInspect: () => void;
 };
 
-export function Cell({ editing, onSelect, cellKey, cellState, board, isHighlighted, isPreview, isInspected, onInspect }: Props) {
+export function Cell({ editing, onSelect, cellKey, cellState, board, referenceCall, referenceRaise, isPreview, isInspected, onInspect }: Props) {
   const combos = getComboDetails(cellKey, cellState, board);
   const value = combos.filter((c) => c.state === "value").length;
   const bluff = combos.filter((c) => c.state === "bluff").length;
@@ -24,9 +26,9 @@ export function Cell({ editing, onSelect, cellKey, cellState, board, isHighlight
 
   return (
     <div
-      className={`cell cell-${value && bluff ? "mixed" : value ? "value" : bluff ? "bluff" : "excluded"} ${isHighlighted ? "cell-highlighted" : ""} ${isPreview ? "cell-preview" : ""} ${isInspected ? "cell-inspected" : ""}`}
+      className={`cell cell-${value && bluff ? "mixed" : value ? "value" : bluff ? "bluff" : "excluded"}  ${isPreview ? "cell-preview" : ""} ${isInspected ? "cell-inspected" : ""}`}
       style={{ background: `linear-gradient(to right, #17394f 0%, #17394f ${value / combos.length * 100}%, #4d2528 ${value / combos.length * 100}%, #4d2528 ${(value + bluff) / combos.length * 100}%, #2a2a2a ${(value + bluff) / combos.length * 100}%)` }}
-      data-cell-key={cellKey} tabIndex={0} aria-label={summary}
+      data-cell-key={cellKey} tabIndex={0} aria-label={summary + (referenceCall ? ", 参照Call" : "") + (referenceRaise ? ", 参照Raise" : "")}
       role={editing ? "button" : undefined} aria-pressed={editing ? isInspected : undefined}
       onClick={() => { if (editing) onSelect(); }}
       onKeyDown={(event) => {
@@ -37,6 +39,7 @@ export function Cell({ editing, onSelect, cellKey, cellState, board, isHighlight
       }}
       onPointerEnter={onInspect} onFocus={onInspect}
     >
+      <ReferenceOutline call={referenceCall} raise={referenceRaise} />
       <div className="cell-label">{cellKey}</div>
       <div className={isSuited ? "suit-results" : "combo-bar"} aria-hidden="true">
         {combos.map((combo) => (

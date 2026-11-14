@@ -21,11 +21,15 @@ export function ComboInspector({ editing, cellKey, cellState, board, isPreview, 
       </div>
       <div className="combo-detail-grid">
         {combos.map((combo) => (
-          <button type="button" key={combo.id} disabled={!editing || combo.state === "blocked"}
+          <button type="button" key={combo.id} aria-label={formatCombo(combo.id) + " " + combo.reason} disabled={!editing || combo.state === "blocked"}
             onClick={() => { if (editing && combo.state !== "blocked") onPaintCombo(combo.id, false); }}
             onContextMenu={(event) => { event.preventDefault(); if (editing && combo.state !== "blocked") onPaintCombo(combo.id, true); }}
             className={`combo-detail result-${combo.state}`}>
-            <strong>{formatCombo(combo.id)}</strong><small>{combo.reason}</small>
+            <strong className="combo-cards" aria-hidden="true">
+              {[0, 2].map(offset => <span key={offset} className={`combo-card combo-card-${combo.id[offset + 1]}`}>
+                {combo.id[offset]}<span>{SUIT_SYMBOLS[combo.id[offset + 1]]}</span>
+              </span>)}
+            </strong><small>{combo.reason}</small>
           </button>
         ))}
       </div>

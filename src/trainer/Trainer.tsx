@@ -39,7 +39,7 @@ export default function Trainer() {
     function onKey(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
       if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || target.closest('input, select, textarea, [contenteditable="true"], .trainer-settings')) return;
-      const action = ({ "1": "Fold", "2": "Call", "3": "Raise" } as Record<string, Action>)[event.key];
+      const action = ({ ArrowLeft: "Fold", ArrowDown: "Call", ArrowRight: "Raise" } as Record<string, Action>)[event.key];
       if (action && question) { event.preventDefault(); submit(action); }
       if (event.code === "Space") { event.preventDefault(); if (answer) next(); }
     }
@@ -54,13 +54,14 @@ export default function Trainer() {
         {question ? <>
           <div className="trainer-question"><p className="trainer-eyebrow">YOUR DECISION</p><h2>{question.range.name}</h2>
             {question.range.scenario && <ScenarioTable scenario={question.range.scenario} />}
-            <div className="trainer-cards">{[question.combo.slice(0, 2), question.combo.slice(2)].map((card, i) => <div key={i} className={"trainer-card suit-" + card[1]} aria-label={card[0] + SUIT_SYMBOLS[card[1]]}><span>{card[0]}</span><span>{SUIT_SYMBOLS[card[1]]}</span></div>)}</div>
-            <div className="trainer-actions">{ACTIONS.map((action, i) => <button key={action} disabled={!!answer} className={(answer === action ? "chosen " : "") + (answer && correct.includes(action) ? "correct" : "")} onClick={() => submit(action)}>{action}<kbd>{i + 1}</kbd></button>)}</div>
+            <div className="trainer-cards">{[question.combo.slice(0, 2), question.combo.slice(2)].map((card, i) => <div key={i} className={"trainer-card suit-" + card[1]} aria-label={card[0] + SUIT_SYMBOLS[card[1]]}><span>{card[0]}</span><span>{SUIT_SYMBOLS[card[1]]}</span></div>)}{answer && <span className={"trainer-answer-mark " + (correct.includes(answer) ? "trainer-success" : "trainer-error")} aria-hidden="true">{correct.includes(answer) ? "○" : "✕"}</span>}</div>
+            <div className="trainer-actions">{ACTIONS.map((action, i) => <button key={action} disabled={!!answer} className={(answer === action ? "chosen " : "") + (answer && correct.includes(action) ? "correct" : "")} onClick={() => submit(action)}>{action}<kbd>{["←", "↓", "→"][i]}</kbd></button>)}</div>
+            <div className="trainer-next-slot">{answer && <button className="trainer-next" onClick={next}>次へ <kbd>Space</kbd></button>}</div>
           </div>
         </> : <div className="trainer-empty"><h2>出題範囲を選択してください</h2><p>ハンドとレンジをそれぞれ1つ以上選ぶと、すぐに問題が表示されます。</p></div>}
       </section>
       <section className="trainer-feedback" aria-label="答え合わせ">
-        <div className="trainer-result" aria-live="polite">{question && answer && <><div><strong className={correct.includes(answer) ? "trainer-success" : "trainer-error"}>{correct.includes(answer) ? "正解" : "不正解"}</strong><p>正解：{correct.join(" / ")} <span>· {question.hand}</span></p></div><button className="trainer-next" onClick={next}>次へ <kbd>Space</kbd></button></>}</div>
+        <div className="trainer-result" aria-live="polite">{question && answer && <><div><strong className={correct.includes(answer) ? "trainer-success" : "trainer-error"}>{correct.includes(answer) ? "正解" : "不正解"}</strong><p>正解：{correct.join(" / ")} <span>· {question.hand}</span></p></div></>}</div>
         <div className="trainer-review" aria-label="レンジ表"><div className="trainer-matrix">{HANDS.map(hand => <div key={hand} className={"trainer-cell " + (hand.length === 2 ? "pair " : "") + (answer && hand === question?.hand ? "current" : "")} aria-label={question && answer ? hand + ": " + correctActions(question.range, hand).join(" / ") + (hand === question.hand ? "（出題ハンド）" : "") : hand}>{hand}<ReferenceOutline call={!!answer && !!question?.range.groups.call?.includes(hand)} raise={!!answer && !!question?.range.groups.raise?.includes(hand)} /></div>)}</div></div>
       </section>
       <details className="trainer-settings" open={settingsOpen} onToggle={event => setSettingsOpen(event.currentTarget.open)}><summary>出題設定 <span>{settings.hands.length} ハンド · {settings.rangeIds.length} レンジ</span></summary>
